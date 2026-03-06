@@ -32,8 +32,8 @@ defmodule ExRatatui do
   ## Widgets
 
   See `ExRatatui.Widgets.Paragraph`, `ExRatatui.Widgets.Block`,
-  `ExRatatui.Widgets.List`, `ExRatatui.Widgets.Table`, and
-  `ExRatatui.Widgets.Gauge`.
+  `ExRatatui.Widgets.List`, `ExRatatui.Widgets.Table`,
+  `ExRatatui.Widgets.Gauge`, and `ExRatatui.Widgets.Clear`.
 
   ## Testing
 
@@ -44,13 +44,14 @@ defmodule ExRatatui do
   alias ExRatatui.Native
   alias ExRatatui.Layout.Rect
   alias ExRatatui.Style
-  alias ExRatatui.Widgets.{Block, Gauge, List, Paragraph, Table}
+  alias ExRatatui.Widgets.{Block, Clear, Gauge, List, Paragraph, Table}
 
   @type terminal_ref :: reference()
 
   @type widget ::
           Paragraph.t()
           | Block.t()
+          | Clear.t()
           | List.t()
           | Table.t()
           | Gauge.t()
@@ -228,6 +229,10 @@ defmodule ExRatatui do
     |> maybe_put("highlight_symbol", t.highlight_symbol)
     |> maybe_put("selected", t.selected)
     |> maybe_put_block(t.block)
+  end
+
+  defp encode_widget(%Clear{}) do
+    %{"type" => "clear"}
   end
 
   defp encode_widget(%Gauge{} = g) do

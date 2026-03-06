@@ -95,7 +95,8 @@ defmodule ExRatatui.MixProject do
           ExRatatui.Widgets.Block,
           ExRatatui.Widgets.List,
           ExRatatui.Widgets.Table,
-          ExRatatui.Widgets.Gauge
+          ExRatatui.Widgets.Gauge,
+          ExRatatui.Widgets.Clear
         ],
         Events: [
           ExRatatui.Event,

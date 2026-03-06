@@ -13,7 +13,7 @@ Build rich terminal UIs in Elixir with ratatui's layout engine, widget library, 
 
 ## Features
 
-- 5 built-in widgets (for now!): Paragraph, Block, List, Table, Gauge
+- 6 built-in widgets (for now!): Paragraph, Block, List, Table, Gauge, Clear
 - Constraint-based layout engine (percentage, length, min, max, ratio)
 - Non-blocking keyboard, mouse, and resize event polling
 - **OTP-supervised TUI apps** via `ExRatatui.App` behaviour with LiveView-inspired callbacks
@@ -242,6 +242,14 @@ Progress bar.
   label: "75%",
   gauge_style: %Style{fg: :green}
 }
+```
+
+### Clear
+
+Resets all cells in its area to empty (space) characters. Useful for rendering overlays on top of existing content.
+
+```elixir
+%Clear{}
 ```
 
 ## Layout

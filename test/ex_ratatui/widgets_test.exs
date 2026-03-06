@@ -4,7 +4,7 @@ defmodule ExRatatui.WidgetsTest do
   alias ExRatatui.Native
   alias ExRatatui.Layout.Rect
   alias ExRatatui.Style
-  alias ExRatatui.Widgets.{Block, Gauge, List, Paragraph, Table}
+  alias ExRatatui.Widgets.{Block, Clear, Gauge, List, Paragraph, Table}
 
   setup do
     terminal = ExRatatui.init_test_terminal(60, 15)
@@ -221,6 +221,32 @@ defmodule ExRatatui.WidgetsTest do
       rect = %Rect{x: 0, y: 0, width: 20, height: 1}
 
       assert :ok = ExRatatui.draw(terminal, [{gauge, rect}])
+    end
+  end
+
+  describe "Clear widget" do
+    test "clears an area to spaces", %{terminal: terminal} do
+      paragraph = %Paragraph{text: "Hello World!"}
+      full = %Rect{x: 0, y: 0, width: 40, height: 3}
+
+      assert :ok = ExRatatui.draw(terminal, [{paragraph, full}])
+      assert ExRatatui.get_buffer_content(terminal) =~ "Hello World!"
+
+      clear_rect = %Rect{x: 0, y: 0, width: 12, height: 1}
+
+      assert :ok =
+               ExRatatui.draw(terminal, [
+                 {paragraph, full},
+                 {%Clear{}, clear_rect}
+               ])
+
+      content = ExRatatui.get_buffer_content(terminal)
+      refute String.starts_with?(content, "Hello")
+    end
+
+    test "clear struct has no fields" do
+      assert %Clear{} == %Clear{}
+      assert Map.keys(%Clear{}) == [:__struct__]
     end
   end
 

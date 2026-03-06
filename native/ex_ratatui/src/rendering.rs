@@ -17,6 +17,7 @@ enum WidgetData {
     List(ListData),
     Table(TableData),
     Gauge(GaugeData),
+    Clear,
 }
 
 struct RenderCommand {
@@ -52,6 +53,7 @@ fn decode_commands(commands: &[(Term, Term)]) -> Result<Vec<RenderCommand>, Erro
                 "list" => WidgetData::List(decode_list(&widget_map)?),
                 "table" => WidgetData::Table(decode_table(&widget_map)?),
                 "gauge" => WidgetData::Gauge(decode_gauge(&widget_map)?),
+                "clear" => WidgetData::Clear,
                 other => {
                     return Err(Error::Term(Box::new(format!(
                         "unknown widget type: {other}"
@@ -288,5 +290,6 @@ fn render_widget(frame: &mut ratatui::Frame, cmd: &RenderCommand) {
         WidgetData::List(data) => list::render(frame, data, cmd.area),
         WidgetData::Table(data) => table::render(frame, data, cmd.area),
         WidgetData::Gauge(data) => gauge::render(frame, data, cmd.area),
+        WidgetData::Clear => crate::widgets::clear::render(frame, cmd.area),
     }
 }

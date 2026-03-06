@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ExRatatui.Widgets.Clear` — a widget that resets all cells in its area to empty (space) characters, useful for rendering overlays
+
+### Fixed
+
 - Put back `Elixir.` prefix from `List` calls in `task_manager.exs` example
 
 ## [0.4.1] - 2026-02-23
