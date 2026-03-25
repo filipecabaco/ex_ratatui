@@ -12,6 +12,15 @@ defmodule ExRatatuiTest do
   doctest ExRatatui.Widgets.Tabs
   doctest ExRatatui.Widgets.Scrollbar
   doctest ExRatatui.Widgets.Checkbox
+  doctest ExRatatui.Widgets.Clear
+  doctest ExRatatui.Widgets.TextInput
+  doctest ExRatatui.Widgets.Throbber
+  doctest ExRatatui.Widgets.Markdown
+  doctest ExRatatui.Widgets.Textarea
+  doctest ExRatatui.Widgets.Popup
+  doctest ExRatatui.Widgets.WidgetList
+  doctest ExRatatui.Widgets.SlashCommands
+  doctest ExRatatui.Widgets.SlashCommands.Command
 
   test "widget structs can be created" do
     paragraph = %ExRatatui.Widgets.Paragraph{text: "Hello"}

@@ -27,20 +27,7 @@ defmodule ExRatatui.Widgets.SlashCommands do
 
   alias ExRatatui.Style
   alias ExRatatui.Widgets.{Block, List, Popup}
-
-  defmodule Command do
-    @moduledoc """
-    A slash command definition with name, description, and optional aliases.
-    """
-
-    @type t :: %__MODULE__{
-            name: String.t(),
-            description: String.t(),
-            aliases: [String.t()]
-          }
-
-    defstruct name: "", description: "", aliases: []
-  end
+  alias ExRatatui.Widgets.SlashCommands.Command
 
   @doc """
   Parses input text to detect a slash command prefix.

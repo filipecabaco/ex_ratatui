@@ -11,6 +11,16 @@ defmodule ExRatatui.Widgets.Popup do
 
   ## Examples
 
+      iex> %ExRatatui.Widgets.Popup{}
+      %ExRatatui.Widgets.Popup{
+        content: nil,
+        block: nil,
+        percent_width: 60,
+        percent_height: 60,
+        fixed_width: nil,
+        fixed_height: nil
+      }
+
       iex> alias ExRatatui.Widgets.{Popup, Paragraph, Block}
       iex> %Popup{
       ...>   content: %Paragraph{text: "Are you sure?"},
@@ -18,6 +28,14 @@ defmodule ExRatatui.Widgets.Popup do
       ...>   percent_width: 50,
       ...>   percent_height: 30
       ...> }
+      %ExRatatui.Widgets.Popup{
+        content: %ExRatatui.Widgets.Paragraph{text: "Are you sure?"},
+        block: %ExRatatui.Widgets.Block{title: "Confirm", borders: [:all], border_type: :rounded},
+        percent_width: 50,
+        percent_height: 30,
+        fixed_width: nil,
+        fixed_height: nil
+      }
   """
 
   @type t :: %__MODULE__{

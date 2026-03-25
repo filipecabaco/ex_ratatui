@@ -8,17 +8,35 @@ defmodule ExRatatui.Widgets.WidgetList do
 
   ## Examples
 
-      alias ExRatatui.Widgets.{WidgetList, Paragraph, Markdown, Block}
-
-      %WidgetList{
-        items: [
-          {%Paragraph{text: "User: Hello!"}, 1},
-          {%Markdown{content: "**Bot:** Hi there!\\n\\nHow can I help?"}, 4},
-          {%Paragraph{text: "User: What is Elixir?"}, 1}
-        ],
-        selected: 1,
+      iex> %ExRatatui.Widgets.WidgetList{}
+      %ExRatatui.Widgets.WidgetList{
+        items: [],
+        selected: nil,
+        highlight_style: %ExRatatui.Style{},
         scroll_offset: 0,
-        block: %Block{title: "Chat", borders: [:all]}
+        style: %ExRatatui.Style{},
+        block: nil
+      }
+
+      iex> alias ExRatatui.Widgets.{WidgetList, Paragraph, Block}
+      iex> %WidgetList{
+      ...>   items: [
+      ...>     {%Paragraph{text: "First message"}, 1},
+      ...>     {%Paragraph{text: "Second message"}, 1}
+      ...>   ],
+      ...>   selected: 0,
+      ...>   block: %Block{title: "Chat", borders: [:all]}
+      ...> }
+      %ExRatatui.Widgets.WidgetList{
+        items: [
+          {%ExRatatui.Widgets.Paragraph{text: "First message"}, 1},
+          {%ExRatatui.Widgets.Paragraph{text: "Second message"}, 1}
+        ],
+        selected: 0,
+        highlight_style: %ExRatatui.Style{},
+        scroll_offset: 0,
+        style: %ExRatatui.Style{},
+        block: %ExRatatui.Widgets.Block{title: "Chat", borders: [:all]}
       }
   """
 

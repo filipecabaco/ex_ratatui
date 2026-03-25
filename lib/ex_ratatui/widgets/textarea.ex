@@ -19,8 +19,6 @@ defmodule ExRatatui.Widgets.Textarea do
   Forward key events via `ExRatatui.textarea_handle_key/3`. The textarea
   supports Emacs-style shortcuts by default:
 
-    * `Ctrl+Z` — undo
-    * `Ctrl+Y` — redo
     * `Ctrl+A` / `Home` — beginning of line
     * `Ctrl+E` / `End` — end of line
     * `Ctrl+K` — delete to end of line
@@ -35,8 +33,35 @@ defmodule ExRatatui.Widgets.Textarea do
 
   ## Examples
 
-      iex> alias ExRatatui.Widgets.Textarea
-      iex> %Textarea{} = %Textarea{}
+      iex> %ExRatatui.Widgets.Textarea{}
+      %ExRatatui.Widgets.Textarea{
+        state: nil,
+        style: %ExRatatui.Style{},
+        cursor_style: %ExRatatui.Style{},
+        cursor_line_style: %ExRatatui.Style{},
+        placeholder: nil,
+        placeholder_style: %ExRatatui.Style{},
+        line_number_style: nil,
+        block: nil
+      }
+
+      iex> alias ExRatatui.Widgets.{Textarea, Block}
+      iex> alias ExRatatui.Style
+      iex> %Textarea{
+      ...>   placeholder: "Type a message...",
+      ...>   placeholder_style: %Style{fg: :dark_gray},
+      ...>   block: %Block{title: "Message", borders: [:all]}
+      ...> }
+      %ExRatatui.Widgets.Textarea{
+        state: nil,
+        style: %ExRatatui.Style{},
+        cursor_style: %ExRatatui.Style{},
+        cursor_line_style: %ExRatatui.Style{},
+        placeholder: "Type a message...",
+        placeholder_style: %ExRatatui.Style{fg: :dark_gray},
+        line_number_style: nil,
+        block: %ExRatatui.Widgets.Block{title: "Message", borders: [:all]}
+      }
   """
 
   alias ExRatatui.Style

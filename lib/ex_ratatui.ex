@@ -542,6 +542,10 @@ defmodule ExRatatui do
     |> maybe_put_block(t.block)
   end
 
+  defp encode_widget(%Popup{content: nil}) do
+    raise ArgumentError, "Popup :content is required — pass a widget struct"
+  end
+
   defp encode_widget(%Popup{} = p) do
     base = %{
       "type" => "popup",

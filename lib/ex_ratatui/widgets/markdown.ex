@@ -9,11 +9,36 @@ defmodule ExRatatui.Widgets.Markdown do
 
   Ideal for rendering AI assistant responses in a chat interface.
 
+  ## Fields
+
+    * `:content` - the markdown text to render
+    * `:style` - `%ExRatatui.Style{}` for the widget background
+    * `:block` - optional `%ExRatatui.Widgets.Block{}` container
+    * `:scroll` - `{vertical, horizontal}` scroll offset (default: `{0, 0}`)
+    * `:wrap` - `true` to wrap text at widget boundary (default: `true`)
+
   ## Examples
 
-      %Markdown{
-        content: "# Hello\\n\\nSome **bold** text and `code`.",
-        block: %Block{title: "Response", borders: [:all]}
+      iex> %ExRatatui.Widgets.Markdown{content: "# Hello\\n\\nSome **bold** text."}
+      %ExRatatui.Widgets.Markdown{
+        content: "# Hello\\n\\nSome **bold** text.",
+        style: %ExRatatui.Style{},
+        block: nil,
+        scroll: {0, 0},
+        wrap: true
+      }
+
+      iex> alias ExRatatui.Widgets.{Markdown, Block}
+      iex> %Markdown{
+      ...>   content: "Some text",
+      ...>   block: %Block{title: "Response", borders: [:all]}
+      ...> }
+      %ExRatatui.Widgets.Markdown{
+        content: "Some text",
+        style: %ExRatatui.Style{},
+        block: %ExRatatui.Widgets.Block{title: "Response", borders: [:all]},
+        scroll: {0, 0},
+        wrap: true
       }
   """
 

@@ -992,6 +992,55 @@ defmodule ExRatatui.WidgetsTest do
       {_row, col} = ExRatatui.textarea_cursor(state)
       assert col == 0
     end
+
+    test "delete key removes character at cursor" do
+      state = ExRatatui.textarea_new()
+      ExRatatui.textarea_set_value(state, "abcd")
+      # Move to beginning
+      ExRatatui.textarea_handle_key(state, "home", [])
+      # Delete char at cursor (removes 'a')
+      ExRatatui.textarea_handle_key(state, "delete", [])
+      assert ExRatatui.textarea_get_value(state) == "bcd"
+    end
+
+    test "Ctrl+K deletes to end of line" do
+      state = ExRatatui.textarea_new()
+      ExRatatui.textarea_set_value(state, "hello world")
+      # Move to beginning, then right 5 times to position after "hello"
+      ExRatatui.textarea_handle_key(state, "home", [])
+
+      for _ <- 1..5 do
+        ExRatatui.textarea_handle_key(state, "right", [])
+      end
+
+      # Ctrl+K should delete from cursor to end of line
+      ExRatatui.textarea_handle_key(state, "k", ["ctrl"])
+      assert ExRatatui.textarea_get_value(state) == "hello"
+    end
+
+    test "Ctrl+W deletes word backward" do
+      state = ExRatatui.textarea_new()
+      ExRatatui.textarea_set_value(state, "hello world")
+      # Move to end
+      ExRatatui.textarea_handle_key(state, "end", [])
+      # Ctrl+W should delete "world"
+      ExRatatui.textarea_handle_key(state, "w", ["ctrl"])
+      value = ExRatatui.textarea_get_value(state)
+      assert value == "hello "
+    end
+
+    test "Ctrl+E moves cursor to end of line" do
+      state = ExRatatui.textarea_new()
+      ExRatatui.textarea_set_value(state, "hello")
+      # Move to beginning first
+      ExRatatui.textarea_handle_key(state, "home", [])
+      assert {0, 0} = ExRatatui.textarea_cursor(state)
+
+      # Ctrl+E (Emacs: end of line)
+      ExRatatui.textarea_handle_key(state, "e", ["ctrl"])
+      {_row, col} = ExRatatui.textarea_cursor(state)
+      assert col == 5
+    end
   end
 
   describe "Popup widget" do
@@ -1012,22 +1061,28 @@ defmodule ExRatatui.WidgetsTest do
     test "popup clears background area", %{terminal: terminal} do
       rect = %Rect{x: 0, y: 0, width: 60, height: 15}
 
-      # First draw background
-      bg = %Paragraph{text: String.duplicate("BACKGROUND ", 20)}
+      # Fill every cell with X (wrap: true to fill all rows)
+      bg = %Paragraph{text: String.duplicate("X", 60 * 15), wrap: true}
       assert :ok = ExRatatui.draw(terminal, [{bg, rect}])
       content_before = ExRatatui.get_buffer_content(terminal)
-      assert content_before =~ "BACKGROUND"
+      x_count_before = content_before |> String.graphemes() |> Enum.count(&(&1 == "X"))
+      assert x_count_before > 0
 
-      # Now draw popup on top
+      # Now draw popup on top — it should clear its region
       popup = %Popup{
         content: %Paragraph{text: "Popup"},
-        percent_width: 50,
-        percent_height: 50
+        percent_width: 80,
+        percent_height: 80
       }
 
       assert :ok = ExRatatui.draw(terminal, [{bg, rect}, {popup, rect}])
       content_after = ExRatatui.get_buffer_content(terminal)
       assert content_after =~ "Popup"
+
+      x_count_after = content_after |> String.graphemes() |> Enum.count(&(&1 == "X"))
+
+      assert x_count_after < x_count_before,
+             "Popup should clear background Xs. Before: #{x_count_before}, After: #{x_count_after}"
     end
 
     test "popup with block border", %{terminal: terminal} do
@@ -1074,6 +1129,29 @@ defmodule ExRatatui.WidgetsTest do
       assert content =~ "Fixed"
     end
 
+    test "popup with markdown content", %{terminal: terminal} do
+      popup = %Popup{
+        content: %Markdown{content: "# Hello\n\nSome **bold** text."},
+        percent_width: 80,
+        percent_height: 80
+      }
+
+      rect = %Rect{x: 0, y: 0, width: 60, height: 15}
+
+      assert :ok = ExRatatui.draw(terminal, [{popup, rect}])
+      content = ExRatatui.get_buffer_content(terminal)
+      assert content =~ "Hello"
+    end
+
+    test "popup with nil content raises ArgumentError", %{terminal: terminal} do
+      popup = %Popup{}
+      rect = %Rect{x: 0, y: 0, width: 60, height: 15}
+
+      assert_raise ArgumentError, ~r/Popup :content is required/, fn ->
+        ExRatatui.draw(terminal, [{popup, rect}])
+      end
+    end
+
     test "popup struct has correct defaults" do
       popup = %Popup{}
       assert popup.content == nil
@@ -1100,14 +1178,19 @@ defmodule ExRatatui.WidgetsTest do
       assert content =~ "Loading..."
     end
 
-    test "throbber with different steps renders", %{terminal: terminal} do
+    test "different steps produce different output", %{terminal: terminal} do
       rect = %Rect{x: 0, y: 0, width: 30, height: 1}
 
-      throbber0 = %Throbber{label: "Wait", step: 0}
-      assert :ok = ExRatatui.draw(terminal, [{throbber0, rect}])
+      # Use non-zero steps to avoid calc_step(0) which picks a random index
+      throbber1 = %Throbber{step: 1}
+      assert :ok = ExRatatui.draw(terminal, [{throbber1, rect}])
+      content1 = ExRatatui.get_buffer_content(terminal)
 
-      throbber3 = %Throbber{label: "Wait", step: 3}
+      throbber3 = %Throbber{step: 3}
       assert :ok = ExRatatui.draw(terminal, [{throbber3, rect}])
+      content3 = ExRatatui.get_buffer_content(terminal)
+
+      assert content1 != content3, "Step 1 and step 3 should render different symbols"
     end
 
     test "throbber with block", %{terminal: terminal} do
@@ -1230,7 +1313,7 @@ defmodule ExRatatui.WidgetsTest do
       assert :ok = ExRatatui.draw(terminal, [{wl, rect}])
     end
 
-    test "renders with scroll_offset", %{terminal: terminal} do
+    test "renders with scroll_offset and clips hidden items", %{terminal: terminal} do
       wl = %WidgetList{
         items: [
           {%Paragraph{text: "Hidden"}, 1},
@@ -1244,6 +1327,61 @@ defmodule ExRatatui.WidgetsTest do
       assert :ok = ExRatatui.draw(terminal, [{wl, rect}])
       content = ExRatatui.get_buffer_content(terminal)
       assert content =~ "Visible"
+      refute content =~ "Hidden"
+    end
+
+    test "renders variable-height items", %{terminal: terminal} do
+      wl = %WidgetList{
+        items: [
+          {%Paragraph{text: "Short"}, 1},
+          {%Paragraph{text: "Tall item\nLine 2\nLine 3"}, 3},
+          {%Paragraph{text: "After tall"}, 1}
+        ]
+      }
+
+      rect = %Rect{x: 0, y: 0, width: 40, height: 10}
+
+      assert :ok = ExRatatui.draw(terminal, [{wl, rect}])
+      content = ExRatatui.get_buffer_content(terminal)
+      assert content =~ "Short"
+      assert content =~ "Tall item"
+      assert content =~ "After tall"
+    end
+
+    test "scroll_offset with selection", %{terminal: terminal} do
+      wl = %WidgetList{
+        items: [
+          {%Paragraph{text: "Scrolled past"}, 1},
+          {%Paragraph{text: "Selected item"}, 1},
+          {%Paragraph{text: "Third"}, 1}
+        ],
+        scroll_offset: 1,
+        selected: 1,
+        highlight_style: %Style{bg: :blue}
+      }
+
+      rect = %Rect{x: 0, y: 0, width: 40, height: 10}
+
+      assert :ok = ExRatatui.draw(terminal, [{wl, rect}])
+      content = ExRatatui.get_buffer_content(terminal)
+      assert content =~ "Selected item"
+      refute content =~ "Scrolled past"
+    end
+
+    test "renders markdown items", %{terminal: terminal} do
+      wl = %WidgetList{
+        items: [
+          {%Markdown{content: "**Bold** text"}, 2},
+          {%Markdown{content: "- item1\n- item2"}, 3}
+        ]
+      }
+
+      rect = %Rect{x: 0, y: 0, width: 40, height: 10}
+
+      assert :ok = ExRatatui.draw(terminal, [{wl, rect}])
+      content = ExRatatui.get_buffer_content(terminal)
+      assert content =~ "Bold"
+      assert content =~ "item1"
     end
 
     test "widget_list struct has correct defaults" do

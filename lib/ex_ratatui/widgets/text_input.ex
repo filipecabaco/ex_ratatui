@@ -43,19 +43,30 @@ defmodule ExRatatui.Widgets.TextInput do
 
   ## Examples
 
-      state = ExRatatui.text_input_new()
-
+      iex> %ExRatatui.Widgets.TextInput{}
       %ExRatatui.Widgets.TextInput{
-        state: state,
-        style: %ExRatatui.Style{fg: :white},
-        cursor_style: %ExRatatui.Style{fg: :black, bg: :white},
+        state: nil,
+        style: %ExRatatui.Style{},
+        cursor_style: %ExRatatui.Style{},
+        placeholder: nil,
+        placeholder_style: %ExRatatui.Style{},
+        block: nil
+      }
+
+      iex> alias ExRatatui.Widgets.{TextInput, Block}
+      iex> alias ExRatatui.Style
+      iex> %TextInput{
+      ...>   placeholder: "Type here...",
+      ...>   placeholder_style: %Style{fg: :dark_gray},
+      ...>   block: %Block{title: "Search", borders: [:all], border_type: :rounded}
+      ...> }
+      %ExRatatui.Widgets.TextInput{
+        state: nil,
+        style: %ExRatatui.Style{},
+        cursor_style: %ExRatatui.Style{},
         placeholder: "Type here...",
         placeholder_style: %ExRatatui.Style{fg: :dark_gray},
-        block: %ExRatatui.Widgets.Block{
-          title: "Search",
-          borders: [:all],
-          border_type: :rounded
-        }
+        block: %ExRatatui.Widgets.Block{title: "Search", borders: [:all], border_type: :rounded}
       }
   """
 

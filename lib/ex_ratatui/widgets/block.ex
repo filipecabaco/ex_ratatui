@@ -3,7 +3,8 @@ defmodule ExRatatui.Widgets.Block do
   A container widget that provides borders and a title around other widgets.
 
   Can be rendered standalone or used as the `:block` field on other widgets
-  (Paragraph, List, Table, Gauge) for composition.
+  for composition. Supported by: Paragraph, List, Table, Gauge, LineGauge,
+  Tabs, Checkbox, TextInput, Markdown, Textarea, Throbber, Popup, and WidgetList.
 
   ## Fields
 
