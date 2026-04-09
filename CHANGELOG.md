@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-04-09
+
 ### Fixed
 
 - **SSH subsystem dispatch** — `ssh host -s Elixir.MyApp.TUI` (and `ExRatatui.SSH.subsystem/1` under `nerves_ssh`) would hang forever instead of rendering. The channel handler was waiting for a `{:ssh_cm, _, {:subsystem, ...}}` message inside `handle_ssh_msg/2`, but OTP `:ssh` consumes that request internally when it matches a name in the daemon's `:subsystems` config — the handler only ever receives `{:ssh_channel_up, ...}`. `ExRatatui.SSH` now detects subsystem-mode dispatch (via a new `subsystem: true` flag baked into the init args by `subsystem/1` and `ExRatatui.SSH.Daemon`) and synthesizes a default 80x24 session + starts the TUI server directly from `{:ssh_channel_up, ...}`. Shell-mode startup (via `ssh_cli`) is unchanged — it still waits for `pty_req` + `shell_req` as before
@@ -203,7 +205,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Precompiled NIFs:** Via `rustler_precompiled` for Linux, macOS, and Windows (x86_64 and aarch64) — no Rust toolchain required
 - **Examples:** `hello_world.exs` (minimal display), `counter.exs` (interactive key events), `counter_app.exs` (App-based counter), `task_manager.exs` (full app with all widgets), and `examples/task_manager/` (supervised Ecto + SQLite CRUD app)
 
-[Unreleased]: https://github.com/mcass19/ex_ratatui/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/mcass19/ex_ratatui/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/mcass19/ex_ratatui/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/mcass19/ex_ratatui/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/mcass19/ex_ratatui/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/mcass19/ex_ratatui/compare/v0.4.2...v0.5.0
