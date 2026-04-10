@@ -45,14 +45,23 @@ pub fn render(buf: &mut Buffer, data: &WidgetListData, area: Rect) {
         let item_top = item_bottom;
         item_bottom += item.height as usize;
 
-        if item_bottom < viewport_start { continue; }
-        if item_top >= viewport_end { break; }
+        if item_bottom < viewport_start {
+            continue;
+        }
+        if item_top >= viewport_end {
+            break;
+        }
 
         // Intersect item row range with viewport
         let top_clip = viewport_start.saturating_sub(item_top) as u16;
         let screen_y = item_top.saturating_sub(viewport_start) as u16;
         let visible_h = (item.height - top_clip).min(inner_area.height - screen_y);
-        let dst = Rect::new(inner_area.x, inner_area.y + screen_y, inner_area.width, visible_h);
+        let dst = Rect::new(
+            inner_area.x,
+            inner_area.y + screen_y,
+            inner_area.width,
+            visible_h,
+        );
 
         // If selected, fill background with highlight style
         if data.selected == Some(idx) {
@@ -197,9 +206,18 @@ mod tests {
         let line0 = buffer_line(&terminal, 0, 30);
         let line1 = buffer_line(&terminal, 1, 30);
         let line2 = buffer_line(&terminal, 2, 30);
-        assert!(line0.contains("Line 1"), "Expected 'Line 1' at row 0: {line0}");
-        assert!(line1.contains("Line 2"), "Expected 'Line 2' at row 1: {line1}");
-        assert!(line2.contains("Line 3"), "Expected 'Line 3' at row 2: {line2}");
+        assert!(
+            line0.contains("Line 1"),
+            "Expected 'Line 1' at row 0: {line0}"
+        );
+        assert!(
+            line1.contains("Line 2"),
+            "Expected 'Line 2' at row 1: {line1}"
+        );
+        assert!(
+            line2.contains("Line 3"),
+            "Expected 'Line 3' at row 2: {line2}"
+        );
 
         data.scroll_offset = 1;
         terminal
@@ -209,9 +227,18 @@ mod tests {
         let line0 = buffer_line(&terminal, 0, 30);
         let line1 = buffer_line(&terminal, 1, 30);
         let line2 = buffer_line(&terminal, 2, 30);
-        assert!(line0.contains("Line 2"), "Expected 'Line 2' at row 0: {line0}");
-        assert!(line1.contains("Line 3"), "Expected 'Line 3' at row 1: {line1}");
-        assert!(line2.contains("Line 4"), "Expected 'Line 4' at row 2: {line2}");
+        assert!(
+            line0.contains("Line 2"),
+            "Expected 'Line 2' at row 0: {line0}"
+        );
+        assert!(
+            line1.contains("Line 3"),
+            "Expected 'Line 3' at row 1: {line1}"
+        );
+        assert!(
+            line2.contains("Line 4"),
+            "Expected 'Line 4' at row 2: {line2}"
+        );
 
         data.scroll_offset = 2;
         terminal
@@ -221,9 +248,18 @@ mod tests {
         let line0 = buffer_line(&terminal, 0, 30);
         let line1 = buffer_line(&terminal, 1, 30);
         let line2 = buffer_line(&terminal, 2, 30);
-        assert!(line0.contains("Line 3"), "Expected 'Line 3' at row 0: {line0}");
-        assert!(line1.contains("Line 4"), "Expected 'Line 4' at row 1: {line1}");
-        assert!(line2.contains("Line 5"), "Expected 'Line 5' at row 1: {line1}");
+        assert!(
+            line0.contains("Line 3"),
+            "Expected 'Line 3' at row 0: {line0}"
+        );
+        assert!(
+            line1.contains("Line 4"),
+            "Expected 'Line 4' at row 1: {line1}"
+        );
+        assert!(
+            line2.contains("Line 5"),
+            "Expected 'Line 5' at row 2: {line2}"
+        );
 
         data.scroll_offset = 3;
         terminal
@@ -233,8 +269,14 @@ mod tests {
         let line0 = buffer_line(&terminal, 0, 30);
         let line1 = buffer_line(&terminal, 1, 30);
         let line2 = buffer_line(&terminal, 2, 30);
-        assert!(line0.contains("Line 4"), "Expected 'Line 4' at row 0: {line0}");
-        assert!(line1.contains("Line 5"), "Expected 'Line 5' at row 1: {line1}");
+        assert!(
+            line0.contains("Line 4"),
+            "Expected 'Line 4' at row 0: {line0}"
+        );
+        assert!(
+            line1.contains("Line 5"),
+            "Expected 'Line 5' at row 1: {line1}"
+        );
         assert!(line2.contains(""), "Expected empty at row 2: {line2}");
 
         data.scroll_offset = 4;
@@ -245,7 +287,10 @@ mod tests {
         let line0 = buffer_line(&terminal, 0, 30);
         let line1 = buffer_line(&terminal, 1, 30);
         let line2 = buffer_line(&terminal, 2, 30);
-        assert!(line0.contains("Line 5"), "Expected 'Line 5' at row 0: {line0}");
+        assert!(
+            line0.contains("Line 5"),
+            "Expected 'Line 5' at row 0: {line0}"
+        );
         assert!(line1.contains(""), "Expected empty at row 1: {line1}");
         assert!(line2.contains(""), "Expected empty at row 2: {line2}");
 

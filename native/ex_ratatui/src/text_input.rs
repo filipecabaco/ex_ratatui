@@ -387,7 +387,12 @@ mod tests {
                     placeholder_style: Style::default(),
                     block: None,
                 };
-                render_state(frame.buffer_mut(), &mut state, Rect::new(0, 0, 20, 1), &opts);
+                render_state(
+                    frame.buffer_mut(),
+                    &mut state,
+                    Rect::new(0, 0, 20, 1),
+                    &opts,
+                );
             })
             .unwrap();
 
@@ -410,7 +415,12 @@ mod tests {
                     placeholder_style: Style::default().fg(Color::DarkGray),
                     block: None,
                 };
-                render_state(frame.buffer_mut(), &mut state, Rect::new(0, 0, 30, 1), &opts);
+                render_state(
+                    frame.buffer_mut(),
+                    &mut state,
+                    Rect::new(0, 0, 30, 1),
+                    &opts,
+                );
             })
             .unwrap();
 
@@ -433,7 +443,12 @@ mod tests {
                     placeholder_style: Style::default(),
                     block: None,
                 };
-                render_state(frame.buffer_mut(), &mut state, Rect::new(0, 0, 20, 1), &opts);
+                render_state(
+                    frame.buffer_mut(),
+                    &mut state,
+                    Rect::new(0, 0, 20, 1),
+                    &opts,
+                );
             })
             .unwrap();
 

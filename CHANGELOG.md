@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`WidgetList` `scroll_offset` is now row-based** — previously `scroll_offset` skipped whole items by index; it now skips rows of content. To scroll to a specific item, sum the heights of all preceding items. Items partially above the viewport are clipped at the row level, enabling smooth pixel-row scrolling for chat histories and similar variable-height lists. This is a **breaking change** for callers that relied on the item-index interpretation
+
+### Fixed
+
+- **`WidgetList` partial-item clipping** — items straddling the top edge of the viewport are now correctly rendered via an off-screen buffer blit instead of being skipped entirely
+
 ## [0.6.1] - 2026-04-09
 
 ### Fixed
