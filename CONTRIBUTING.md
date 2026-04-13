@@ -79,6 +79,7 @@ Before submitting a PR, make sure the following pass:
 ```sh
 mix format --check-formatted
 mix compile --warnings-as-errors
+mix credo --strict
 mix test
 mix dialyzer
 mix rust.check

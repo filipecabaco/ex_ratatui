@@ -70,7 +70,7 @@ defmodule ExRatatui.MixProject do
 
       # Dev
       {:ex_doc, "~> 0.35", only: :dev, runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false}
     ]
   end
