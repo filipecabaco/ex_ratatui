@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-04-13
+
 ### Fixed
 
 - **SSH bare Esc key not detected** — VTE's state machine swallows `0x1B` as the start of an escape sequence, so a bare Esc press over SSH produced no event. The SSH transport now schedules a 50 ms timeout after a lone `0x1B` with no follow-up bytes; if the timer fires it resets the parser and dispatches a synthetic `%Event.Key{code: "esc"}` press. Follow-up bytes (the normal case for multi-byte sequences like arrow keys) cancel the timer before it fires. Added `Session.reset_parser/1` and its backing `session_reset_parser` NIF
@@ -283,7 +285,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Precompiled NIFs:** Via `rustler_precompiled` for Linux, macOS, and Windows (x86_64 and aarch64) — no Rust toolchain required
 - **Examples:** `hello_world.exs` (minimal display), `counter.exs` (interactive key events), `counter_app.exs` (App-based counter), `task_manager.exs` (full app with all widgets), and `examples/task_manager/` (supervised Ecto + SQLite CRUD app)
 
-[Unreleased]: https://github.com/mcass19/ex_ratatui/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/mcass19/ex_ratatui/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/mcass19/ex_ratatui/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/mcass19/ex_ratatui/compare/v0.6.2...v0.7.0
 [0.6.2]: https://github.com/mcass19/ex_ratatui/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/mcass19/ex_ratatui/compare/v0.6.0...v0.6.1
