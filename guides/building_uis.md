@@ -100,7 +100,7 @@ The runtime automatically re-renders on resize — you don't need to handle resi
 
 ### Paragraph
 
-Text display with alignment, wrapping, and scrolling.
+Displays text with support for alignment, wrapping, and scrolling.
 
 ```elixir
 %Paragraph{
@@ -113,7 +113,7 @@ Text display with alignment, wrapping, and scrolling.
 
 ### Block
 
-Container with borders and title. Can wrap any other widget via the `:block` field.
+A container with borders and a title. Any widget can be wrapped inside a Block via its `:block` field.
 
 ```elixir
 %Block{
@@ -134,7 +134,7 @@ Border types: `:plain`, `:rounded`, `:double`, `:thick`.
 
 ### List
 
-Selectable list with highlight support.
+A selectable list with highlight support for the current item.
 
 ```elixir
 %List{
@@ -148,7 +148,7 @@ Selectable list with highlight support.
 
 ### Table
 
-Table with headers, rows, and column width constraints.
+A table with headers, rows, and column width constraints.
 
 ```elixir
 %Table{
@@ -162,7 +162,7 @@ Table with headers, rows, and column width constraints.
 
 ### Gauge
 
-Progress bar.
+A progress bar that fills proportionally to a given ratio.
 
 ```elixir
 %Gauge{
@@ -174,7 +174,7 @@ Progress bar.
 
 ### LineGauge
 
-Thin single-line progress bar with separate filled/unfilled styles.
+A thin single-line progress bar using line-drawing characters, with separate styles for the filled and unfilled portions.
 
 ```elixir
 %LineGauge{
@@ -187,7 +187,7 @@ Thin single-line progress bar with separate filled/unfilled styles.
 
 ### Tabs
 
-Tab bar for switching between views.
+A tab bar for switching between views.
 
 ```elixir
 %Tabs{
@@ -201,7 +201,7 @@ Tab bar for switching between views.
 
 ### Scrollbar
 
-Scroll position indicator for long content. Supports vertical and horizontal orientations.
+A scroll position indicator for long content, supporting both vertical and horizontal orientations.
 
 ```elixir
 %Scrollbar{
@@ -217,7 +217,7 @@ Orientations: `:vertical_right`, `:vertical_left`, `:horizontal_bottom`, `:horiz
 
 ### Checkbox
 
-Boolean toggle with customizable symbols.
+A boolean toggle with customizable checked and unchecked symbols.
 
 ```elixir
 %Checkbox{
@@ -231,7 +231,7 @@ Boolean toggle with customizable symbols.
 
 ### TextInput
 
-Single-line text input with cursor navigation and viewport scrolling. This is a **stateful** widget — its state lives in Rust via ResourceArc.
+A single-line text input with cursor navigation and viewport scrolling. This is a **stateful** widget — its state lives in Rust via ResourceArc.
 
 ```elixir
 # Create state (once, e.g. in mount/1 or init/1)
@@ -258,7 +258,7 @@ ExRatatui.text_input_set_value(state, "hello")
 
 ### Clear
 
-Resets all cells in its area to empty (space) characters. Useful for rendering overlays on top of existing content.
+Resets all cells in its area to empty space characters. This is useful for clearing a region before rendering an overlay on top of existing content.
 
 ```elixir
 %Clear{}
@@ -266,7 +266,7 @@ Resets all cells in its area to empty (space) characters. Useful for rendering o
 
 ### Markdown
 
-Renders markdown with syntax-highlighted code blocks. Powered by `tui-markdown` (pulldown-cmark + syntect). Supports headings, bold, italic, inline code, fenced code blocks, bullet lists, links, and horizontal rules.
+Renders markdown text with syntax-highlighted code blocks, powered by `tui-markdown` (pulldown-cmark + syntect). Supports headings, bold, italic, inline code, fenced code blocks, bullet lists, links, and horizontal rules.
 
 ```elixir
 %Markdown{
@@ -278,7 +278,7 @@ Renders markdown with syntax-highlighted code blocks. Powered by `tui-markdown` 
 
 ### Textarea
 
-Multiline text editor with undo/redo, cursor movement, and Emacs-style shortcuts. This is a **stateful** widget — state lives in Rust via ResourceArc.
+A multiline text editor with undo/redo, cursor movement, and Emacs-style shortcuts. This is a **stateful** widget — its state lives in Rust via ResourceArc.
 
 ```elixir
 # Create state (once, e.g. in mount/1 or init/1)
@@ -303,7 +303,7 @@ ExRatatui.textarea_get_value(state)  #=> "h\n"
 
 ### Throbber
 
-Loading spinner that animates through symbol sets. The caller controls animation by incrementing `:step` on each tick.
+A loading spinner that animates through symbol sets. The caller controls the animation by incrementing `:step` on each tick.
 
 ```elixir
 %Throbber{
@@ -319,7 +319,7 @@ Available sets: `:braille`, `:dots`, `:ascii`, `:vertical_block`, `:horizontal_b
 
 ### Popup
 
-Centered modal overlay. Renders any widget centered over the parent area, clearing the background underneath. Useful for dialogs, confirmations, and command palettes.
+A centered modal overlay that renders any widget over the parent area, clearing the background underneath. Useful for dialogs, confirmations, and command palettes.
 
 ```elixir
 %Popup{
@@ -332,7 +332,7 @@ Centered modal overlay. Renders any widget centered over the parent area, cleari
 
 ### WidgetList
 
-Vertical list of heterogeneous widgets with optional selection and scrolling. Each item is a `{widget, height}` tuple. Ideal for chat message histories where items have different heights.
+A vertical list of heterogeneous widgets with optional selection and scrolling. Each item is a `{widget, height}` tuple, making it ideal for chat message histories and similar layouts where items have different heights.
 
 `scroll_offset` is a row offset from the top of the content, not an item index. To scroll to a specific item, sum the heights of all preceding items. Items partially above the viewport are clipped row-by-row instead of being dropped entirely.
 
@@ -352,7 +352,7 @@ Vertical list of heterogeneous widgets with optional selection and scrolling. Ea
 
 ### SlashCommands
 
-Command palette with fuzzy search. Renders a scrollable list of `SlashCommands.Command` structs filtered by the current input.
+A command palette with fuzzy search that renders a scrollable list of `SlashCommands.Command` structs filtered by the current input.
 
 ```elixir
 alias ExRatatui.Widgets.SlashCommands

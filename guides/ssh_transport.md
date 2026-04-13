@@ -8,7 +8,7 @@ This is the mode you want when:
   * You want multiple people to attach to the same daemon, each with their own independent session.
   * You're wrapping an existing `nerves_ssh` daemon and just want one more subsystem for your TUI.
 
-The entire transport is pure OTP `:ssh` — no ports, no extra ports, no external `sshd`.
+The entire transport is pure OTP `:ssh` — no Erlang ports, no extra TCP listeners, no external `sshd`.
 
 ## The Big Picture
 

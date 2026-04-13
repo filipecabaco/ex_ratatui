@@ -23,6 +23,24 @@ defmodule ExRatatui.Runtime do
   The returned map is intended for debugging, tests, and runtime introspection.
   Under `test_mode`, `:polling_enabled?` is `false`, which makes it easy to
   assert the server is running headlessly.
+
+  The returned map contains:
+
+      %{
+        mode: :callbacks | :reducer,
+        mod: MyApp.TUI,
+        transport: :local | :ssh | :distributed_server,
+        polling_enabled?: boolean(),
+        dimensions: {width, height},
+        render_count: non_neg_integer(),
+        last_rendered_at: DateTime.t() | nil,
+        trace_enabled?: boolean(),
+        trace_limit: pos_integer(),
+        trace_events: [map()],
+        subscription_count: non_neg_integer(),
+        subscriptions: [%{id: term(), kind: atom(), interval_ms: pos_integer(), fired?: boolean(), active?: boolean()}],
+        active_async_commands: non_neg_integer()
+      }
   """
   @spec snapshot(GenServer.server()) :: map()
   def snapshot(server) do
@@ -31,6 +49,15 @@ defmodule ExRatatui.Runtime do
 
   @doc """
   Enables in-memory runtime tracing for `server`.
+
+  Once enabled, trace events are collected in memory and can be retrieved with
+  `trace_events/1`. Each trace event is a map describing a state transition:
+
+      %{
+        type: :event | :info | :render | :command | :subscription,
+        timestamp: DateTime.t(),
+        ...
+      }
 
   ## Options
 

@@ -68,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ExRatatui.App` `dispatch_start/1` routes `:distributed` to `ExRatatui.Distributed.Listener.start_link/1`
 - **`WidgetList` `scroll_offset` is now row-based** — previously `scroll_offset` skipped whole items by index; it now skips rows of content. To scroll to a specific item, sum the heights of all preceding items. Items partially above the viewport are clipped at the row level, enabling smooth pixel-row scrolling for chat histories and similar variable-height lists. This is a **breaking change** for callers that relied on the item-index interpretation
 
+  **Migration:** If you set `scroll_offset` to an item index (e.g., `scroll_offset: selected`), replace it with the cumulative row height of preceding items. For example, if all items have height 3: `scroll_offset: selected * 3`. For variable-height items, sum their heights: `scroll_offset: items |> Enum.take(selected) |> Enum.map(&elem(&1, 1)) |> Enum.sum()`
+
 ### Fixed
 
 - **`WidgetList` partial-item clipping** — items straddling the top edge of the viewport are now correctly rendered via an off-screen buffer blit instead of being skipped entirely

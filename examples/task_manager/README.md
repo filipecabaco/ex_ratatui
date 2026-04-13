@@ -4,11 +4,11 @@ A terminal task manager built with [ExRatatui](https://github.com/mcass19/ex_rat
 
 ## What This Shows
 
-- `ExRatatui.App` behaviour with `mount/1`, `render/2`, `handle_event/2` callbacks
-- OTP supervision: Repo and TUI run side-by-side under a supervisor
-- Ecto + SQLite for persistent task storage
-- Full CRUD operations from the terminal
-- Layout with Table, Gauge, and Paragraph widgets
+- Using the `ExRatatui.App` behaviour with `mount/1`, `render/2`, and `handle_event/2` callbacks
+- OTP supervision with the Repo and TUI running side-by-side under a single supervisor
+- Ecto and SQLite for persistent task storage
+- Full CRUD operations driven from the terminal
+- Layout composition with Table, Gauge, and Paragraph widgets
 
 ## Setup
 

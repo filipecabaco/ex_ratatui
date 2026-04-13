@@ -40,13 +40,29 @@ mix test
 # Elixir tests with coverage report
 mix test --cover
 
-# Rust tests
-cargo test --manifest-path native/ex_ratatui/Cargo.toml
+# Rust
+mix rust.check
 ```
 
-The default `mix test` run excludes tests tagged `:distributed` and `:slow`.
-The `:slow` tag is reserved for heavyweight regression tests such as isolated
-parallel cold-compile checks that would otherwise dominate local test time.
+> **Note:** CI enforces **100% test coverage** on the Elixir side (NIF modules are
+> excluded). If you add new public functions or branches, make sure to add
+> corresponding tests. Run `mix test --cover` locally to check before pushing.
+
+### Distribution tests
+
+Full cross-node integration tests for the Erlang distribution transport are tagged `:distributed` and **excluded by default** (they require the test node to be distributed). To run them:
+
+```sh
+# Run only distributed tests
+elixir --sname test -S mix test --only distributed
+
+# Run all tests (unit + distributed)
+elixir --sname test -S mix test --include distributed
+```
+
+### Regression tests
+
+The `:slow` tag is reserved for heavyweight regression tests such as isolated parallel cold-compile checks that would otherwise dominate local test time.
 
 ```sh
 # Run only slow tests
@@ -56,21 +72,11 @@ mix test --only slow
 mix test --include slow
 ```
 
-### Distribution integration tests
+## Branching and Commits
 
-Full cross-node integration tests for the Erlang distribution transport are tagged `:distributed` and **excluded by default** (they require the test node to be distributed). To run them:
-
-```sh
-# Run only distribution integration tests
-elixir --sname test -S mix test --only distributed
-
-# Run all tests (unit + integration)
-elixir --sname test -S mix test --include distributed
-```
-
-> **Note:** CI enforces **100% test coverage** on the Elixir side (NIF modules are
-> excluded). If you add new public functions or branches, make sure to add
-> corresponding tests. Run `mix test --cover` locally to check before pushing.
+- Branch from `main` for all work.
+- Keep commits focused and atomic — one logical change per commit.
+- Prefix commit subjects with a type: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
 
 ## Pull Requests
 
@@ -80,13 +86,22 @@ Before submitting a PR, make sure the following pass:
 mix format --check-formatted
 mix compile --warnings-as-errors
 mix credo --strict
-mix test
 mix dialyzer
+mix test --cover
 mix rust.check
 ```
 
-- Keep PRs focused — one feature or fix per PR
-- Add tests for new functionality
-- Update documentation (moduledocs, CHANGELOG, README if applicable)
-- Follow existing code style and patterns
-- Ensure CI passes before requesting review
+### PR Guidelines
+
+- Each PR should stay focused on a single feature or fix.
+- Add tests for any new functionality you introduce.
+- Follow the existing code style and patterns in the codebase.
+- Make sure CI passes before requesting review.
+
+### Documentation Expectations
+
+- Every new public function should include both a `@doc` and a `@spec`.
+- New widgets should include a `@moduledoc` with field descriptions and at least one usage example, along with an entry in the [Building UIs](guides/building_uis.md) guide.
+- Any new feature or changed behaviour should have a CHANGELOG entry under `[Unreleased]`.
+- Breaking changes should include a "Migration" note in the CHANGELOG entry that explains what callers need to change.
+- If a feature introduces a guide-worthy topic, add or update a guide in `guides/` and update the README accordingly.

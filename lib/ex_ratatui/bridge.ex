@@ -29,16 +29,19 @@ defmodule ExRatatui.Bridge do
     WidgetList
   }
 
+  @doc false
   @spec encode_commands!([{ExRatatui.widget(), Rect.t()}]) :: [{map(), map()}]
   def encode_commands!(widgets) when is_list(widgets) do
     Enum.map(widgets, &encode_command/1)
   end
 
+  @doc false
   @spec encode_command({ExRatatui.widget(), Rect.t()}) :: {map(), map()}
   def encode_command({widget, %Rect{} = rect}) do
     {encode_widget(widget), encode_rect(rect)}
   end
 
+  @doc false
   def encode_command(other) do
     raise ArgumentError,
           "expected a render command in the form {widget, %ExRatatui.Layout.Rect{}}, got: #{inspect(other)}"

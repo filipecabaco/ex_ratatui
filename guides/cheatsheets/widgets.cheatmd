@@ -1,0 +1,284 @@
+# Widgets Cheatsheet
+
+## Paragraph
+
+Text display with optional wrapping, alignment, and scrolling.
+
+```elixir
+%Paragraph{
+  text: "Hello, world!",
+  style: %Style{fg: :green},
+  alignment: :center,         # :left | :center | :right
+  wrap: true,                 # enable word wrapping
+  scroll: {0, 0},             # {vertical, horizontal} offset
+  block: %Block{title: " Info ", borders: [:all]}
+}
+```
+
+## Block
+
+Container with borders, title, and padding. Wraps other widgets via their `:block` field.
+
+```elixir
+%Block{
+  title: " My Panel ",
+  borders: [:all],            # [:all] | [:top, :bottom, :left, :right]
+  border_type: :rounded,      # :plain | :rounded | :double | :thick
+  border_style: %Style{fg: :cyan},
+  style: %Style{},
+  padding: {0, 0, 0, 0}      # {top, right, bottom, left}
+}
+```
+
+## List
+
+Selectable list of text items with highlight support.
+
+```elixir
+%List{
+  items: ["Item 1", "Item 2", "Item 3"],
+  selected: 0,
+  highlight_style: %Style{fg: :yellow, modifiers: [:bold]},
+  highlight_symbol: ">> ",
+  style: %Style{},
+  block: %Block{title: " Menu ", borders: [:all]}
+}
+```
+
+## Table
+
+Multi-column data grid with configurable column widths.
+
+```elixir
+%Table{
+  header: ["Name", "Status", "Score"],
+  rows: [
+    ["Alice", "Active", "95"],
+    ["Bob", "Idle", "87"]
+  ],
+  widths: [{:percentage, 40}, {:percentage, 30}, {:percentage, 30}],
+  selected: 0,
+  highlight_style: %Style{fg: :yellow},
+  column_spacing: 1,
+  block: %Block{title: " Scores ", borders: [:all]}
+}
+```
+
+Widths accept `{:length, n}`, `{:percentage, n}`, `{:min, n}`, `{:max, n}`, `{:ratio, n, d}`.
+
+## Gauge
+
+Filled progress bar with optional label.
+
+```elixir
+%Gauge{
+  ratio: 0.65,                # 0.0 to 1.0
+  label: "65%",
+  gauge_style: %Style{fg: :green},
+  block: %Block{title: " Progress ", borders: [:all]}
+}
+```
+
+## LineGauge
+
+Horizontal progress bar with filled/unfilled styling.
+
+```elixir
+%LineGauge{
+  ratio: 0.4,
+  label: "Loading...",
+  filled_style: %Style{fg: :blue},
+  unfilled_style: %Style{fg: :dark_gray},
+  block: %Block{borders: [:all]}
+}
+```
+
+## Tabs
+
+Tab navigation bar with selected highlight.
+
+```elixir
+%Tabs{
+  titles: ["Overview", "Details", "Settings"],
+  selected: 0,
+  highlight_style: %Style{fg: :yellow, modifiers: [:bold]},
+  divider: " | ",
+  padding: {1, 1},
+  block: %Block{borders: [:bottom]}
+}
+```
+
+## Scrollbar
+
+Decorative scrollbar indicator for scrollable content.
+
+```elixir
+%Scrollbar{
+  orientation: :vertical_right,  # :vertical_right | :vertical_left | :horizontal_bottom | :horizontal_top
+  content_length: 100,
+  position: 25,
+  viewport_content_length: 20
+}
+```
+
+## Checkbox
+
+Boolean toggle with customizable symbols.
+
+```elixir
+%Checkbox{
+  label: "Enable notifications",
+  checked: true,
+  style: %Style{},
+  checked_style: %Style{fg: :green},
+  checked_symbol: "[x]",
+  unchecked_symbol: "[ ]",
+  block: nil
+}
+```
+
+## TextInput
+
+Single-line text editor. Requires a NIF-managed state reference.
+
+```elixir
+# Create state once, then reuse across renders
+state = ExRatatui.text_input_new()
+
+%TextInput{
+  state: state,
+  placeholder: "Type here...",
+  style: %Style{fg: :white},
+  cursor_style: %Style{bg: :white, fg: :black},
+  placeholder_style: %Style{fg: :dark_gray},
+  block: %Block{title: " Input ", borders: [:all]}
+}
+
+# Handle key events
+ExRatatui.text_input_handle_key(state, key_event)
+
+# Read current value
+value = ExRatatui.text_input_get_value(state)
+```
+
+## Textarea
+
+Multi-line text editor with cursor line highlighting.
+
+```elixir
+state = ExRatatui.textarea_new()
+
+%Textarea{
+  state: state,
+  placeholder: "Enter message...",
+  style: %Style{fg: :white},
+  cursor_style: %Style{bg: :white, fg: :black},
+  cursor_line_style: %Style{bg: {40, 40, 40}},
+  line_number_style: %Style{fg: :dark_gray},   # nil to hide line numbers
+  placeholder_style: %Style{fg: :dark_gray},
+  block: %Block{title: " Editor ", borders: [:all]}
+}
+
+# Handle key events (Enter inserts newline, Ctrl+Enter submits)
+ExRatatui.textarea_handle_key(state, key_event)
+
+# Read current value
+value = ExRatatui.textarea_get_value(state)
+```
+
+## Clear
+
+Fills the area with blank cells. Useful for clearing regions before redrawing.
+
+```elixir
+%Clear{}
+```
+
+## Markdown
+
+Renders markdown text with syntax highlighting for headings, bold, italic, code, and lists.
+
+```elixir
+%Markdown{
+  content: "# Title\n\nSome **bold** and *italic* text.\n\n- Item 1\n- Item 2",
+  style: %Style{},
+  wrap: true,
+  scroll: {0, 0},
+  block: %Block{borders: [:all]}
+}
+```
+
+## Throbber
+
+Animated loading spinner. Caller must increment `:step` to animate.
+
+```elixir
+%Throbber{
+  label: "Loading",
+  throbber_set: :braille,     # :braille | :dots | :line | :ascii
+  step: state.tick,           # increment this to animate
+  style: %Style{},
+  throbber_style: %Style{fg: :cyan},
+  block: nil
+}
+```
+
+Use `Subscription.interval/3` (reducer) or `Process.send_after/3` (callback) to increment the step.
+
+## Popup
+
+Centered overlay. Wraps a content widget and renders it on top of existing content.
+
+```elixir
+%Popup{
+  content: %Paragraph{text: "Are you sure?"},
+  percent_width: 50,          # percentage of terminal width
+  percent_height: 30,
+  # OR use fixed dimensions:
+  # fixed_width: 40,
+  # fixed_height: 10,
+  block: %Block{title: " Confirm ", borders: [:all], border_type: :double}
+}
+```
+
+## WidgetList
+
+Scrollable container for heterogeneous widgets with row-based scrolling and partial clipping.
+
+```elixir
+%WidgetList{
+  items: [
+    {%Paragraph{text: "Row 1"}, 3},    # {widget, height}
+    {%Paragraph{text: "Row 2"}, 3},
+    {%Paragraph{text: "Row 3"}, 5}
+  ],
+  selected: 0,
+  scroll_offset: 0,           # row index of first visible item
+  highlight_style: %Style{bg: {50, 50, 50}},
+  block: %Block{title: " Items ", borders: [:all]}
+}
+```
+
+## SlashCommands
+
+Autocomplete overlay for slash commands. Combines `SlashCommands` functions with a `Popup`.
+
+```elixir
+alias ExRatatui.Widgets.SlashCommands
+alias ExRatatui.Widgets.SlashCommands.Command
+
+commands = [
+  %Command{name: "help", description: "Show help", aliases: ["h", "?"]},
+  %Command{name: "quit", description: "Exit the app", aliases: ["q"]}
+]
+
+# Parse user input for a slash prefix
+case SlashCommands.parse(input_text) do
+  {:slash, query} ->
+    matches = SlashCommands.match_commands(commands, query)
+    # Render matches in a Popup via your render/2 callback
+
+  :no_slash ->
+    # Normal input, no autocomplete needed
+end
+```

@@ -215,6 +215,26 @@ Returns an empty list — explicit no-op:
 def subscriptions(_state), do: [Subscription.none()]
 ```
 
+## Error Handling and Supervision
+
+ExRatatui apps are supervised GenServers — standard OTP fault tolerance applies. The reducer runtime adds a few specifics:
+
+  * **`init/1` raises or returns `{:error, reason}`:** The server stops and the supervisor handles the restart. For SSH and distributed transports, the session is cleaned up and the client sees the connection close.
+
+  * **`render/2` raises:** The error is logged and the frame is skipped — the server continues running with the previous screen content.
+
+  * **`update/2` raises:** The server crashes and the supervisor restarts it. A fresh `init/1` starts from scratch — all subscriptions are re-established.
+
+  * **`Command.async/2` function raises:** The error is caught and the mapper receives `{:error, {:exception, message}}`. If the mapper itself raises, the runtime wraps that into `{:error, {:mapper_exception, message}}`. In both cases, the result is delivered to `update/2` as a normal `{:info, ...}` message — async commands always complete cleanly.
+
+  * **Subscription timers after crash:** All timer references are lost on crash. After a supervisor restart, `subscriptions/1` re-declares the timers and the runtime re-arms them from scratch.
+
+  * **Terminal restoration:** On local transport, the terminal is automatically restored via the Rust ResourceArc finalizer when the reference is garbage collected.
+
+  * **SSH/distributed disconnection:** The server detects the disconnect via monitors and shuts down cleanly, calling `terminate/2`.
+
+For production deployments, set appropriate `:max_restarts` and `:max_seconds` on your supervisor to prevent restart loops. Use `ExRatatui.Runtime.enable_trace/2` to capture state transitions leading up to a crash for post-mortem debugging.
+
 ## Runtime Inspection
 
 `ExRatatui.Runtime` provides runtime introspection that works with both callback and reducer apps:

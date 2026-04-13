@@ -82,6 +82,7 @@ defmodule ExRatatui.MixProject do
         "GitHub" => @source_url,
         "Changelog" => @changelog_url
       },
+      keywords: ~w(tui terminal ratatui cli ssh nerves distributed otp),
       files: ~w(
         lib native .formatter.exs mix.exs README.md LICENSE CHANGELOG.md
         checksum-Elixir.ExRatatui.Native.exs
@@ -101,11 +102,13 @@ defmodule ExRatatui.MixProject do
         "guides/building_uis.md": [title: "Building UIs"],
         "guides/ssh_transport.md": [title: "Running TUIs over SSH"],
         "guides/distributed_transport.md": [title: "Running TUIs over Erlang Distribution"],
+        "guides/cheatsheets/widgets.cheatmd": [title: "Widgets Cheatsheet"],
         "CONTRIBUTING.md": [title: "Contributing"],
         "CHANGELOG.md": [title: "Changelog"]
       ],
       groups_for_extras: [
-        Guides: Path.wildcard("guides/*.md")
+        Guides: Path.wildcard("guides/*.md"),
+        Cheatsheets: Path.wildcard("guides/cheatsheets/*.cheatmd")
       ],
       groups_for_modules: [
         Application: [

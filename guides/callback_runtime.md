@@ -153,6 +153,26 @@ def handle_info({:new_message, msg}, state) do
 end
 ```
 
+## Error Handling and Supervision
+
+ExRatatui apps are supervised GenServers — standard OTP fault tolerance applies:
+
+  * **`mount/1` raises or returns `{:error, reason}`:** The server stops and the supervisor handles the restart according to its strategy (`:one_for_one`, etc.). For SSH and distributed transports, the session is cleaned up and the client sees the connection close.
+
+  * **`render/2` raises:** The error is logged and the frame is skipped — the server continues running with the previous screen content. This prevents a rendering bug from crashing your app.
+
+  * **`handle_event/2` or `handle_info/2` raises:** The server crashes and the supervisor restarts it. Since the GenServer has no way to safely continue with potentially corrupted state, a fresh `mount/1` starts from scratch.
+
+  * **`terminate/2` raises:** The error is ignored — the process exits regardless. Use this callback for best-effort cleanup (e.g., notifying other processes), not for critical operations.
+
+  * **Terminal restoration:** On a local transport crash, the terminal is automatically restored (raw mode disabled, cursor shown) via the Rust ResourceArc finalizer when the terminal reference is garbage collected. You don't need to handle this manually.
+
+  * **SSH client disconnect:** The SSH channel detects the TCP close, the server receives a shutdown signal, and `terminate/2` is called normally.
+
+  * **Distributed client disconnect:** The server monitors the client process. When the client's node goes down, the monitor fires and the server shuts down cleanly.
+
+For production deployments, set appropriate `:max_restarts` and `:max_seconds` on your supervisor to prevent restart loops.
+
 ## Running Over Transports
 
 The same app module works across all three transports with zero code changes:
