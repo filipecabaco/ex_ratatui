@@ -96,6 +96,9 @@ defmodule ExRatatui.MixProject do
       source_ref: "v#{@version}",
       extras: [
         "README.md": [title: "Overview"],
+        "guides/callback_runtime.md": [title: "Callback Runtime"],
+        "guides/reducer_runtime.md": [title: "Reducer Runtime"],
+        "guides/building_uis.md": [title: "Building UIs"],
         "guides/ssh_transport.md": [title: "Running TUIs over SSH"],
         "guides/distributed_transport.md": [title: "Running TUIs over Erlang Distribution"],
         "CONTRIBUTING.md": [title: "Contributing"],

@@ -1,0 +1,204 @@
+# Callback Runtime
+
+The callback runtime is the default way to build supervised TUI applications with `ExRatatui.App`. It follows a LiveView-inspired pattern: mount initial state, render on every state change, and handle events and messages through dedicated callbacks.
+
+This is the mode you want when:
+
+  * You're building a straightforward interactive TUI with direct state management.
+  * You want the simplest possible interface — just `mount`, `render`, and `handle_event`.
+  * You don't need first-class command or subscription primitives.
+
+For apps that benefit from an Elm-style architecture with commands, subscriptions, and a unified message path, see the [Reducer Runtime](reducer_runtime.md) guide.
+
+## Quick Start
+
+```elixir
+defmodule MyApp.TUI do
+  use ExRatatui.App
+
+  alias ExRatatui.Event
+  alias ExRatatui.Layout.Rect
+  alias ExRatatui.Style
+  alias ExRatatui.Widgets.{Block, Paragraph}
+
+  @impl true
+  def mount(_opts) do
+    {:ok, %{count: 0}}
+  end
+
+  @impl true
+  def render(state, frame) do
+    area = %Rect{x: 0, y: 0, width: frame.width, height: frame.height}
+
+    widget = %Paragraph{
+      text: "Count: #{state.count}",
+      style: %Style{fg: :white, modifiers: [:bold]},
+      alignment: :center,
+      block: %Block{
+        title: " Counter ",
+        borders: [:all],
+        border_type: :rounded,
+        border_style: %Style{fg: :cyan}
+      }
+    }
+
+    [{widget, area}]
+  end
+
+  @impl true
+  def handle_event(%Event.Key{code: "q", kind: "press"}, state) do
+    {:stop, state}
+  end
+
+  def handle_event(%Event.Key{code: "up", kind: "press"}, state) do
+    {:noreply, %{state | count: state.count + 1}}
+  end
+
+  def handle_event(%Event.Key{code: "down", kind: "press"}, state) do
+    {:noreply, %{state | count: state.count - 1}}
+  end
+
+  def handle_event(_event, state) do
+    {:noreply, state}
+  end
+end
+```
+
+Add it to your supervision tree:
+
+```elixir
+children = [{MyApp.TUI, []}]
+Supervisor.start_link(children, strategy: :one_for_one)
+```
+
+Or run it directly:
+
+```elixir
+{:ok, pid} = MyApp.TUI.start_link(name: nil)
+```
+
+## Callbacks
+
+| Callback | Required | Description |
+|----------|----------|-------------|
+| `mount/1` | Yes | Called once on startup. Receives opts from `start_link/1`. Return `{:ok, initial_state}` or `{:error, reason}` |
+| `render/2` | Yes | Called after every state change. Receives state and `%Frame{}` with terminal dimensions. Return `[{widget, rect}]` |
+| `handle_event/2` | Yes | Called on terminal events (key, mouse, resize). Return `{:noreply, state}` or `{:stop, state}` |
+| `handle_info/2` | No | Called for non-terminal messages (e.g., PubSub, `Process.send_after`). Defaults to `{:noreply, state}` |
+| `terminate/2` | No | Called on shutdown with reason and final state. Default is a no-op |
+
+### `mount/1`
+
+`mount/1` receives the keyword list passed to `start_link/1`. Use it to set up initial state:
+
+```elixir
+def mount(opts) do
+  pubsub = Keyword.get(opts, :pubsub)
+
+  if pubsub do
+    Phoenix.PubSub.subscribe(pubsub, "updates")
+  end
+
+  {:ok, %{messages: [], pubsub: pubsub}}
+end
+```
+
+When running over SSH or Erlang distribution, `mount/1` also receives `:transport`, `:width`, and `:height` — so your app can adapt its initial state per transport without changing any other callback.
+
+### `render/2`
+
+`render/2` receives the current state and a `%ExRatatui.Frame{}` struct with the terminal's current `width` and `height`. Return a list of `{widget, rect}` tuples — the runtime renders them in order.
+
+See the [Building UIs](building_uis.md) guide for the full widget, layout, and styling reference.
+
+```elixir
+def render(state, frame) do
+  area = %Rect{x: 0, y: 0, width: frame.width, height: frame.height}
+
+  [header_area, body_area] =
+    Layout.split(area, :vertical, [{:length, 3}, {:min, 0}])
+
+  [
+    {%Paragraph{text: "Header"}, header_area},
+    {%Paragraph{text: "Body: #{inspect(state)}"}, body_area}
+  ]
+end
+```
+
+### `handle_event/2`
+
+Terminal events arrive as `ExRatatui.Event` structs — see the [Events section](building_uis.md#events) of the Building UIs guide.
+
+```elixir
+def handle_event(%Event.Key{code: "q", kind: "press"}, state) do
+  {:stop, state}
+end
+
+def handle_event(%Event.Key{code: "up", kind: "press"}, state) do
+  {:noreply, %{state | selected: max(state.selected - 1, 0)}}
+end
+
+def handle_event(_event, state) do
+  {:noreply, state}
+end
+```
+
+### `handle_info/2`
+
+Non-terminal messages (PubSub broadcasts, `Process.send_after` timers, etc.) arrive here:
+
+```elixir
+def handle_info({:new_message, msg}, state) do
+  {:noreply, %{state | messages: [msg | state.messages]}}
+end
+```
+
+## Running Over Transports
+
+The same app module works across all three transports with zero code changes:
+
+```elixir
+children = [
+  {MyApp.TUI, []},                                    # local TTY
+  {MyApp.TUI, transport: :ssh, port: 2222, ...},      # remote over SSH
+  {MyApp.TUI, transport: :distributed}                 # remote over distribution
+]
+```
+
+See the [Running TUIs over SSH](ssh_transport.md) and [Running TUIs over Erlang Distribution](distributed_transport.md) guides for transport-specific setup, options, and authentication.
+
+## Testing
+
+Start the app under `test_mode` with explicit dimensions and use `ExRatatui.Runtime.inject_event/2` for deterministic input:
+
+```elixir
+test "increments on up key" do
+  {:ok, pid} = MyApp.TUI.start_link(name: nil, test_mode: {40, 10})
+
+  event = %ExRatatui.Event.Key{code: "up", modifiers: [], kind: "press"}
+  :ok = ExRatatui.Runtime.inject_event(pid, event)
+
+  snapshot = ExRatatui.Runtime.snapshot(pid)
+  assert snapshot.render_count >= 2
+
+  GenServer.stop(pid)
+end
+```
+
+`test_mode` disables live terminal input polling so `async: true` tests don't race ambient TTY events.
+
+## Examples
+
+  * [`examples/counter_app.exs`](https://github.com/mcass19/ex_ratatui/blob/main/examples/counter_app.exs) — simple counter with key events
+  * [`examples/system_monitor.exs`](https://github.com/mcass19/ex_ratatui/blob/main/examples/system_monitor.exs) — Linux system dashboard with CPU, memory, disk, network, and BEAM stats (also runs over SSH and Erlang distribution)
+  * [`examples/task_manager/`](https://github.com/mcass19/ex_ratatui/tree/main/examples/task_manager) — supervised Ecto + SQLite CRUD app with tabs, table, scrollbar, and SSH support
+  * [`phoenix_ex_ratatui_example`](https://github.com/mcass19/phoenix_ex_ratatui_example) — Phoenix 1.8 app with an admin TUI over SSH sharing PubSub with LiveView
+  * [`nerves_ex_ratatui_example`](https://github.com/mcass19/nerves_ex_ratatui_example) — Nerves firmware with system monitor and LED control TUIs over SSH
+
+## Related
+
+  * `ExRatatui.App` — behaviour module
+  * [Reducer Runtime](reducer_runtime.md) — alternative runtime with commands and subscriptions
+  * [Building UIs](building_uis.md) — widgets, layout, styles, and events
+  * [Running TUIs over SSH](ssh_transport.md) — SSH transport
+  * [Running TUIs over Erlang Distribution](distributed_transport.md) — distribution transport
