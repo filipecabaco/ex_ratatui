@@ -129,6 +129,10 @@ defmodule ExRatatui.MixProject do
         Cheatsheets: Path.wildcard("guides/cheatsheets/*.cheatmd")
       ],
       groups_for_modules: [
+        Core: [
+          ExRatatui,
+          ExRatatui.Session
+        ],
         Application: [
           ExRatatui.App
         ],
@@ -137,24 +141,27 @@ defmodule ExRatatui.MixProject do
           ExRatatui.Subscription,
           ExRatatui.Runtime
         ],
-        "SSH Transport": [
-          ExRatatui.SSH,
-          ExRatatui.SSH.Daemon
-        ],
-        "Distribution Transport": [
-          ExRatatui.Distributed,
-          ExRatatui.Distributed.Listener
-        ],
         Layout: [
           ExRatatui.Frame,
           ExRatatui.Layout,
           ExRatatui.Layout.Rect
+        ],
+        Style: [
+          ExRatatui.Style
+        ],
+        "Rich Text": [
+          ExRatatui.Text,
+          ExRatatui.Text.Line,
+          ExRatatui.Text.Span
         ],
         Events: [
           ExRatatui.Event,
           ExRatatui.Event.Key,
           ExRatatui.Event.Mouse,
           ExRatatui.Event.Resize
+        ],
+        Focus: [
+          ExRatatui.Focus
         ],
         Widgets: [
           ExRatatui.Widgets.Paragraph,
@@ -174,19 +181,12 @@ defmodule ExRatatui.MixProject do
           ExRatatui.Widgets.Textarea,
           ExRatatui.Widgets.Throbber,
           ExRatatui.Widgets.Popup,
-          ExRatatui.Widgets.WidgetList,
-          ExRatatui.Widgets.SlashCommands,
-          ExRatatui.Widgets.SlashCommands.Command
+          ExRatatui.Widgets.WidgetList
         ],
         "Widgets: Bar Chart": [
           ExRatatui.Widgets.BarChart,
           ExRatatui.Widgets.Bar,
           ExRatatui.Widgets.BarGroup
-        ],
-        "Widgets: Chart": [
-          ExRatatui.Widgets.Chart,
-          ExRatatui.Widgets.Chart.Axis,
-          ExRatatui.Widgets.Chart.Dataset
         ],
         "Widgets: Canvas": [
           ExRatatui.Widgets.Canvas,
@@ -197,19 +197,25 @@ defmodule ExRatatui.MixProject do
           ExRatatui.Widgets.Canvas.Points,
           ExRatatui.Widgets.Canvas.Rectangle
         ],
+        "Widgets: Chart": [
+          ExRatatui.Widgets.Chart,
+          ExRatatui.Widgets.Chart.Axis,
+          ExRatatui.Widgets.Chart.Dataset
+        ],
+        "Widgets: Slash Commands": [
+          ExRatatui.Widgets.SlashCommands,
+          ExRatatui.Widgets.SlashCommands.Command
+        ],
         "Custom Widgets": [
           ExRatatui.Widget
         ],
-        "Rich Text": [
-          ExRatatui.Text,
-          ExRatatui.Text.Line,
-          ExRatatui.Text.Span
+        "SSH Transport": [
+          ExRatatui.SSH,
+          ExRatatui.SSH.Daemon
         ],
-        Focus: [
-          ExRatatui.Focus
-        ],
-        Style: [
-          ExRatatui.Style
+        "Distribution Transport": [
+          ExRatatui.Distributed,
+          ExRatatui.Distributed.Listener
         ]
       ]
     ]

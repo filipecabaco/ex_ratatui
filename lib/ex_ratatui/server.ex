@@ -297,12 +297,14 @@ defmodule ExRatatui.Server do
 
   @impl true
   def terminate(reason, %__MODULE__{transport: :local, terminal_initialized: true} = state) do
+    cancel_subscription_timers(state)
     restore_terminal(state.terminal_ref)
     state.mod.terminate(reason, state.user_state)
     :ok
   end
 
   def terminate(reason, %__MODULE__{transport: :ssh, terminal_initialized: true} = state) do
+    cancel_subscription_timers(state)
     Session.close(state.session)
     state.mod.terminate(reason, state.user_state)
     :ok
@@ -312,12 +314,22 @@ defmodule ExRatatui.Server do
         reason,
         %__MODULE__{transport: :distributed_server, terminal_initialized: true} = state
       ) do
+    cancel_subscription_timers(state)
     state.mod.terminate(reason, state.user_state)
     :ok
   end
 
   @impl true
   def terminate(_reason, _state), do: :ok
+
+  # Cancel any armed subscription timers so pending ticks are not delivered
+  # to a restarted process carrying a stale mailbox.
+  defp cancel_subscription_timers(%__MODULE__{subscriptions: subs}) do
+    Enum.each(subs, fn
+      {_id, %{timer_ref: ref}} when is_reference(ref) -> Process.cancel_timer(ref)
+      _ -> :ok
+    end)
+  end
 
   ## Extracted logic (@doc false, public for testability)
 

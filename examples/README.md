@@ -2,7 +2,7 @@
 
 A catalog of runnable ExRatatui examples. Each stands alone — start with `hello_world` or `counter_app`, then browse the rest for patterns you want to copy.
 
-All examples run under a real terminal. Most also work over SSH (`--ssh`) or Erlang distribution (`--distributed`); the flag is noted where it applies.
+All examples run under a real terminal. Some also work over SSH (`--ssh`) or Erlang distribution (`--distributed`); the flag is noted where it applies.
 
 ## Catalog
 
@@ -21,6 +21,8 @@ All examples run under a real terminal. Most also work over SSH (`--ssh`) or Erl
 | [`task_manager.exs`](task_manager.exs) | `mix run examples/task_manager.exs` | Full task manager — tabs, table, scrollbar, line gauge. In-memory state; a good end-to-end reducer example. |
 | [`task_manager/`](task_manager/) | See the [subdir README](task_manager/README.md) | Supervised Ecto + SQLite CRUD app. Also runs over SSH where multiple clients share one DB. |
 | [`system_monitor.exs`](system_monitor.exs) | `mix run examples/system_monitor.exs` | Linux system dashboard: CPU, memory, disk, network, BEAM stats. Linux/Nerves only. Also supports `--ssh` and `--distributed` (see below). |
+
+The [Getting Started](../guides/getting_started.md) guide builds a todo app from scratch using the same patterns.
 
 ## Try an example over SSH
 
@@ -45,14 +47,3 @@ iex> ExRatatui.Distributed.attach(:"app@hostname", SystemMonitor)
 
 The app node runs the BEAM logic; the client node owns the terminal (and the NIF). Ideal for Nerves-on-a-box workflows where the device has no human console. See [Running TUIs over Erlang Distribution](../guides/distributed_transport.md).
 
-## Learning order
-
-If you're new:
-
-1. `hello_world.exs` — prove the install works.
-2. `counter_app.exs` — the real starting shape of an `ExRatatui.App`.
-3. `reducer_counter_app.exs` — see how the reducer runtime differs.
-4. `widget_showcase.exs` — browse every widget in one place.
-5. Pick any end-to-end example — `task_manager.exs`, `chat_interface.exs`, or `system_monitor.exs`.
-
-The [Getting Started](../guides/getting_started.md) guide builds a todo app from scratch using the same patterns.

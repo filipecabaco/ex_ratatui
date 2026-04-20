@@ -94,14 +94,25 @@ mix rust.check
 ### PR Guidelines
 
 - Each PR should stay focused on a single feature or fix.
-- Add tests for any new functionality you introduce.
 - Follow the existing code style and patterns in the codebase.
 - Make sure CI passes before requesting review.
 
 ### Documentation Expectations
 
-- Every new public function should include both a `@doc` and a `@spec`.
-- New widgets should include a `@moduledoc` with field descriptions and at least one usage example, along with an entry in the [Building UIs](guides/building_uis.md) guide.
-- Any new feature or changed behaviour should have a CHANGELOG entry under `[Unreleased]`.
+- Every new public function should include both a `@doc` and a `@spec`. Prefer runnable `## Examples` — doctests count toward the 100% coverage bar.
+- Every new public module should have a `@moduledoc` describing its purpose.
+- New widgets need three things:
+  1. A `@moduledoc` with field descriptions and at least one usage example.
+  2. An entry in the [Building UIs](guides/building_uis.md) guide.
+  3. An entry in the [widgets cheatsheet](guides/cheatsheets/widgets.cheatmd).
+- Any new feature or changed behaviour should have a CHANGELOG entry under `[Unreleased]`, grouped under `Added` / `Changed` / `Fixed` / `Removed` per [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Breaking changes should include a "Migration" note in the CHANGELOG entry that explains what callers need to change.
 - If a feature introduces a guide-worthy topic, add or update a guide in `guides/` and update the README accordingly.
+- Run `mix docs` locally and skim the output — broken links and missing `extras` entries are easy to miss.
+
+### Testing Expectations
+
+- **Widgets** — add a widget-level test using the headless backend (`ExRatatui.init_test_terminal/2`). See [Testing](guides/testing.md).
+- **Runtime / app behaviour** — add an app-level test under `test_mode`, driving the runtime with `ExRatatui.Runtime.inject_event/2` and asserting on snapshots or emitted messages.
+- **Transports** — if your change touches SSH or Erlang distribution, extend the tagged suites (`:distributed`, `:slow`).
+- Coverage is enforced at 100% on the Elixir side (NIFs excluded). Run `mix test --cover` before pushing.

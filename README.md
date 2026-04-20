@@ -16,15 +16,15 @@ Build rich terminal UIs in Elixir with ratatui's layout engine, widget library, 
 - 21 built-in widgets (and counting!): Paragraph, Block, List, Table, Gauge, LineGauge, BarChart, Sparkline, Calendar, Canvas, Chart, Tabs, Scrollbar, Checkbox, TextInput, Clear, Markdown, Textarea, Throbber, Popup, WidgetList
 - Constraint-based layout engine (percentage, length, min, max, ratio)
 - Non-blocking keyboard, mouse, and resize event polling
-- **OTP-supervised TUI apps** via `ExRatatui.App` behaviour with LiveView-inspired callbacks
-- **Reducer runtime** for command/subscription driven apps via `use ExRatatui.App, runtime: :reducer`
-- **Built-in SSH transport**: serve any `ExRatatui.App` as a remote TUI, standalone or under `nerves_ssh`
-- **Erlang distribution transport**: attach to a remote TUI over Erlang distribution with zero NIF on the app node
+- OTP-supervised TUI apps: via `ExRatatui.App` behaviour with LiveView-inspired callbacks
+- Reducer runtime: for command/subscription driven apps via `use ExRatatui.App, runtime: :reducer`
+- Built-in SSH transport: serve any `ExRatatui.App` as a remote TUI, standalone or under `nerves_ssh`
+- Erlang distribution transport: attach to a remote TUI over Erlang distribution with zero NIF on the app node
 - Full color support: named, RGB, and 256-color indexed
 - Text modifiers: bold, italic, underlined, and more
-- **Rich text** on text-bearing widget fields (`Paragraph.text`, `List.items`, `Table` cells, `Tabs.titles`, `Block.title`): per-span colors and modifiers via `ExRatatui.Text.Span`/`Line`
-- **Custom widgets in pure Elixir** via the `ExRatatui.Widget` protocol: compose primitives into reusable composite widgets without touching Rust
-- **Focus management** for multi-panel apps via `ExRatatui.Focus`: declare a ring of focusable IDs, cycle with Tab/Shift+Tab, dispatch keystrokes to the active widget
+- Rich text on text-bearing widget fields (`Paragraph.text`, `List.items`, `Table` cells, `Tabs.titles`, `Block.title`): per-span colors and modifiers via `ExRatatui.Text.Span`/`Line`
+- Custom widgets in pure Elixir via the `ExRatatui.Widget` protocol: compose primitives into reusable composite widgets without touching Rust
+- Focus management for multi-panel apps via `ExRatatui.Focus`: declare a ring of focusable IDs, cycle with Tab/Shift+Tab, dispatch keystrokes to the active widget
 - Headless test backend for CI-friendly rendering verification
 - Precompiled NIF binaries: no Rust toolchain needed
 - Runs on BEAM's DirtyIo scheduler: never blocks your processes
@@ -40,10 +40,12 @@ The full catalog (system monitor, chat interface, task manager, Ecto-backed CRUD
 
 ## Built with ExRatatui
 
-- **[ash_tui](https://github.com/mcass19/ash_tui)** — Interactive terminal explorer for [Ash](https://ash-hq.org) domains, resources, attributes, actions, and more.
-- **[switchyard](https://github.com/nshkrdotcom/switchyard)** — Full-featured reducer runtime workbench exercising command batching, async effects, subscription reconciliation, runtime snapshots, distributed attach, and row-scrolled WidgetList.
-- **[nerves_ex_ratatui_example](https://github.com/mcass19/nerves_ex_ratatui_example)** — Example [Nerves](https://nerves-project.org) project with three TUIs (system monitor, LED control, and a reducer-runtime system monitor) on embedded hardware, reachable over SSH subsystems and Erlang distribution.
-- **[phoenix_ex_ratatui_example](https://github.com/mcass19/phoenix_ex_ratatui_example)** — Example [Phoenix](https://www.phoenixframework.org/) project with two TUIs (callback and reducer runtime) served over SSH and Erlang distribution alongside a public LiveView chat room, sharing PubSub between the browser and the terminal.
+- [ash_tui](https://github.com/mcass19/ash_tui) — Interactive terminal explorer for [Ash](https://ash-hq.org) domains, resources, attributes, actions, and more.
+- [bb_tui](https://github.com/mcass19/bb_tui) — **Proposal** terminal-based dashboard for [Beam Bots](https://github.com/beam-bots) robots.
+- [switchyard](https://github.com/nshkrdotcom/switchyard) — Full-featured reducer runtime workbench exercising command batching, async effects, subscription reconciliation, runtime snapshots, distributed attach, and row-scrolled WidgetList.
+- [nerves_ex_ratatui_example](https://github.com/mcass19/nerves_ex_ratatui_example) — Example [Nerves](https://nerves-project.org) project with three TUIs (system monitor, LED control, and a reducer-runtime system monitor) on embedded hardware, reachable over SSH subsystems and Erlang distribution.
+- [phoenix_ex_ratatui_example](https://github.com/mcass19/phoenix_ex_ratatui_example) — Example [Phoenix](https://www.phoenixframework.org/) project with two TUIs (callback and reducer runtime) served over SSH and Erlang distribution alongside a public LiveView chat room, sharing PubSub between the browser and the terminal.
+- ... yours? Open a PR! Plenty of ideas to explore in [awesome-ratatui](https://github.com/ratatui/awesome-ratatui).
 
 ## Installation
 
@@ -63,10 +65,7 @@ Then fetch and compile:
 mix deps.get && mix compile
 ```
 
-A precompiled NIF binary for your platform will be downloaded automatically.
-The native library itself is loaded lazily on first use, so compiling a
-project that depends on `ex_ratatui` does not require the NIF to be loaded
-into the compiler VM.
+A precompiled NIF binary for your platform will be downloaded automatically. The native library itself is loaded lazily on first use, so compiling a project that depends on `ex_ratatui` does not require the NIF to be loaded into the compiler VM.
 
 ### Prerequisites
 

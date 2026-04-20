@@ -193,6 +193,17 @@ Usually a long-running computation inside `render/2`. Terminal events keep queui
 
 Check the logs — an exception in any callback crashes the server. Unless you've changed the default, the supervisor doesn't restart transient children that exit abnormally. In tests, `start_supervised!` propagates the crash into the test.
 
+### I force-killed a TUI and now my shell is broken
+
+If a TUI crashes without running `terminate/2` (SIGKILL, a kernel OOM, a disconnected SSH session), the terminal can be left in raw mode — characters don't echo, the cursor vanishes, or output wraps oddly. Restore it from the dazed shell:
+
+```sh
+reset      # full terminal reset — safest
+stty sane  # lighter: restores line discipline without clearing
+```
+
+Both are safe to type blind. Under supervised runs this is rare because `terminate/2` restores the terminal on any `:normal`, `:shutdown`, or exception exit — but it can't fire if the BEAM itself is killed.
+
 ## Rust NIF rebuilds
 
 If you're editing the native code under `native/ex_ratatui/`:

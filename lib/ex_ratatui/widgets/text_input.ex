@@ -9,18 +9,30 @@ defmodule ExRatatui.Widgets.TextInput do
 
   ## State Management
 
-      # Create a new input state (returns a reference)
-      state = ExRatatui.text_input_new()
+  The state reference is an opaque handle to Rust-side memory. Treat it
+  like any other NIF resource:
 
-      # Forward key events to the input
-      ExRatatui.text_input_handle_key(state, "h")
-      ExRatatui.text_input_handle_key(state, "i")
+    * Don't serialize, persist, or compare it with `==`.
+    * Don't send it to another BEAM node — ResourceArcs are node-local.
+      The distributed transport snapshots stateful widgets into plain
+      terms before shipping them; reconstruct state on the client side
+      rather than forwarding the reference.
+    * A reference is garbage-collected when no process holds it.
 
-      # Read the current value
-      ExRatatui.text_input_get_value(state)  #=> "hi"
+  ```elixir
+  # Create a new input state (returns a reference)
+  state = ExRatatui.text_input_new()
 
-      # Set value programmatically
-      ExRatatui.text_input_set_value(state, "hello")
+  # Forward key events to the input
+  ExRatatui.text_input_handle_key(state, "h")
+  ExRatatui.text_input_handle_key(state, "i")
+
+  # Read the current value
+  ExRatatui.text_input_get_value(state)  #=> "hi"
+
+  # Set value programmatically
+  ExRatatui.text_input_set_value(state, "hello")
+  ```
 
   ## Supported Keys
 

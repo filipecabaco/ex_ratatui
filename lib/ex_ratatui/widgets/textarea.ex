@@ -5,6 +5,11 @@ defmodule ExRatatui.Widgets.Textarea do
   Uses the `ratatui-textarea` Rust crate. State lives in Rust via ResourceArc —
   create it with `ExRatatui.textarea_new/0` and pass the reference as `:state`.
 
+  The state reference is an opaque handle to Rust-side memory: don't
+  serialize, persist, compare, or send it to another node. The
+  distributed transport snapshots stateful widgets into plain terms
+  before shipping them.
+
   ## Usage
 
       state = ExRatatui.textarea_new()

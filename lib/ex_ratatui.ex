@@ -55,6 +55,23 @@ defmodule ExRatatui do
   [Testing](guides/testing.md) guide for widget-level and app-level
   patterns, and [Debugging](guides/debugging.md) for `Runtime.snapshot/1`
   and tracing.
+
+  ## Error handling
+
+  ExRatatui follows a predictable convention across its surface:
+
+    * **Programmer errors raise `ArgumentError`.** Invalid widget shapes,
+      malformed option keyword lists, callback return values the runtime
+      cannot interpret — these indicate a bug and fail loudly so the
+      supervisor surfaces them.
+    * **Runtime and I/O failures return `{:error, reason}` tuples.**
+      Terminal init, event polling, draw failures, remote-node connect
+      errors — anything the caller may legitimately want to retry or
+      branch on.
+
+  The same rule applies to `ExRatatui.App` callbacks: invalid return
+  shapes raise, while `mount/1` may return `{:error, reason}` to refuse
+  startup cleanly.
   """
 
   require Logger

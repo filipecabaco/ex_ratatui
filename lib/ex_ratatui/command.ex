@@ -72,7 +72,27 @@ defmodule ExRatatui.Command do
   Runs `fun` in the background and maps its result back into an app message.
 
   On success, the mapper receives the function's return value directly. If the
-  function raises or exits, the mapper receives `{:error, reason}`.
+  function raises or exits, the mapper receives `{:error, reason}` where
+  `reason` is one of `{:exception, message}`, `{:exit, term}`, or
+  `{:throw | :error, term}`. Design the mapper to handle both shapes so a
+  failing task becomes a structured message your `update/2` (or
+  `handle_info/2`) can branch on.
+
+  If the mapper itself raises or exits, the app process receives
+  `{:error, {:mapper_exception, message}}`,
+  `{:error, {:mapper_exit, reason}}`, or
+  `{:error, {:mapper_catch, {kind, reason}}}` — distinct tags so you can
+  tell a task failure apart from a bug in the mapper.
+
+  ## Examples
+
+      ExRatatui.Command.async(
+        fn -> MyAPI.fetch_user(id) end,
+        fn
+          {:ok, user} -> {:user_loaded, user}
+          {:error, reason} -> {:user_load_failed, reason}
+        end
+      )
   """
   @spec async(async_fun(), async_mapper()) :: t()
   def async(fun, mapper) when is_function(fun, 0) and is_function(mapper, 1) do

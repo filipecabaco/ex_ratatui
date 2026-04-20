@@ -33,7 +33,7 @@ defmodule ExRatatui.Runtime do
         polling_enabled?: boolean(),
         dimensions: {width, height},
         render_count: non_neg_integer(),
-        last_rendered_at: DateTime.t() | nil,
+        last_rendered_at: integer() | nil,
         trace_enabled?: boolean(),
         trace_limit: pos_integer(),
         trace_events: [map()],

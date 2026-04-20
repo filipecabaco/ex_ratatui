@@ -1,11 +1,10 @@
 defmodule ExRatatui.Bridge do
-  @moduledoc """
-  Internal bridge between Elixir widget structs and the native render command format.
+  @moduledoc false
 
-  This module owns validation and encoding for render commands so both
-  `ExRatatui.draw/2` and `ExRatatui.Session.draw/2` cross the NIF boundary
-  through the same path.
-  """
+  # Internal bridge between Elixir widget structs and the native render
+  # command format. Owns validation and encoding for render commands so
+  # both ExRatatui.draw/2 and ExRatatui.Session.draw/2 cross the NIF
+  # boundary through the same path.
 
   alias ExRatatui.Layout.Rect
   alias ExRatatui.Style
