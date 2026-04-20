@@ -295,7 +295,8 @@ A 2D drawing surface for plotting shapes, charts, and custom visualizations. Sha
 
 ```elixir
 alias ExRatatui.Widgets.Canvas
-alias ExRatatui.Widgets.Canvas.{Line, Rectangle, Circle, Points}
+alias ExRatatui.Widgets.Canvas.{Circle, Label, Line, Points, Rectangle}
+alias ExRatatui.Widgets.Canvas.Map, as: CanvasMap
 
 %Canvas{
   x_bounds: {0.0, 100.0},
@@ -306,13 +307,34 @@ alias ExRatatui.Widgets.Canvas.{Line, Rectangle, Circle, Points}
     %Line{x1: 0.0, y1: 0.0, x2: 100.0, y2: 50.0, color: :cyan},
     %Rectangle{x: 10.0, y: 10.0, width: 30.0, height: 20.0, color: :yellow},
     %Circle{x: 70.0, y: 25.0, radius: 10.0, color: :magenta},
-    %Points{coords: [{20.0, 40.0}, {50.0, 30.0}, {80.0, 10.0}], color: :green}
+    %Points{coords: [{20.0, 40.0}, {50.0, 30.0}, {80.0, 10.0}], color: :green},
+    %Label{x: 70.0, y: 25.0, text: "★", color: :white}
   ],
   block: %Block{title: " Plot ", borders: [:all]}
 }
 ```
 
-Every shape takes a plain `Color.t()` (not a `Style`) — canvases sample individual pixels so text modifiers do not apply. `Rectangle` is drawn as an outline anchored at its bottom-left corner; `Circle` is drawn as an outline centered on `{x, y}`; `Points` accepts a list of `{x, y}` tuples. Bounds must be `{min, max}` tuples with `min <= max`; `width`, `height`, and `radius` must be non-negative; any required field set to `nil` or a mistyped value raises `ArgumentError` at encode time. `:marker` defaults to `:braille`, which gives the finest sub-cell resolution — drop to `:dot` or `:block` for lower-density output or for terminals without Braille fonts.
+Every shape takes a plain `Color.t()` (not a `Style`) — canvases sample individual pixels so text modifiers do not apply. `Rectangle` is drawn as an outline anchored at its bottom-left corner; `Circle` is drawn as an outline centered on `{x, y}`; `Points` accepts a list of `{x, y}` tuples; `Label` writes a styled text annotation at the given canvas-space coordinate (handy for naming peaks, marking origins, or labeling map locations). Bounds must be `{min, max}` tuples with `min <= max`; `width`, `height`, and `radius` must be non-negative; any required field set to `nil` or a mistyped value raises `ArgumentError` at encode time. `:marker` defaults to `:braille`, which gives the finest sub-cell resolution — drop to `:dot` or `:block` for lower-density output or for terminals without Braille fonts.
+
+#### Drawing a world map
+
+`%CanvasMap{}` paints the world's coastlines into the canvas — pair it with the geographic bounds `{-180, 180}` × `{-90, 90}` and the `:dot` or `:braille` marker. `Label` shapes layered on top let you pin city names or other annotations directly in lat/lon space.
+
+```elixir
+%Canvas{
+  x_bounds: {-180.0, 180.0},
+  y_bounds: {-90.0, 90.0},
+  marker: :dot,
+  shapes: [
+    %CanvasMap{resolution: :high, color: :green},  # :low | :high
+    %Label{x: -74.0, y: 40.7, text: "NYC", color: :yellow},
+    %Label{x: 139.7, y: 35.7, text: "Tokyo", color: :yellow}
+  ],
+  block: %Block{title: " World ", borders: [:all]}
+}
+```
+
+`Map.resolution` accepts `:low` (cheap silhouette) or `:high` (richer coastline detail). `Label.text` must be a binary; the color applies as the text foreground. Both shapes raise `ArgumentError` if a required field is missing or mistyped.
 
 ### Tabs
 

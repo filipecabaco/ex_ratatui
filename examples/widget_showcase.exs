@@ -26,7 +26,8 @@ alias ExRatatui.Widgets.{
   TextInput
 }
 
-alias ExRatatui.Widgets.Canvas.{Circle, Line, Points, Rectangle}
+alias ExRatatui.Widgets.Canvas.{Circle, Label, Line, Points, Rectangle}
+alias ExRatatui.Widgets.Canvas.Map, as: CanvasMap
 
 defmodule WidgetShowcase do
   use ExRatatui.App

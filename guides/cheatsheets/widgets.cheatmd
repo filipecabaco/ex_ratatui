@@ -179,7 +179,8 @@ Monthly calendar grid with per-day event highlighting. Events accept a list of `
 2D drawing surface. Shapes are plotted in the virtual coordinate space defined by `:x_bounds` / `:y_bounds`, then sampled onto cells using the chosen `:marker`. Colors are plain `Color.t()` values — text modifiers do not apply to canvas pixels.
 
 ```elixir
-alias ExRatatui.Widgets.Canvas.{Line, Rectangle, Circle, Points}
+alias ExRatatui.Widgets.Canvas.{Circle, Label, Line, Points, Rectangle}
+alias ExRatatui.Widgets.Canvas.Map, as: CanvasMap
 
 %Canvas{
   x_bounds: {0.0, 100.0},
@@ -190,13 +191,33 @@ alias ExRatatui.Widgets.Canvas.{Line, Rectangle, Circle, Points}
     %Line{x1: 0.0, y1: 0.0, x2: 100.0, y2: 50.0, color: :cyan},
     %Rectangle{x: 10.0, y: 10.0, width: 30.0, height: 20.0, color: :yellow},
     %Circle{x: 70.0, y: 25.0, radius: 10.0, color: :magenta},
-    %Points{coords: [{20.0, 40.0}, {50.0, 30.0}], color: :green}
+    %Points{coords: [{20.0, 40.0}, {50.0, 30.0}], color: :green},
+    %Label{x: 70.0, y: 25.0, text: "★", color: :white}
   ],
   block: %Block{title: " Plot ", borders: [:all]}
 }
 ```
 
 `Rectangle` is an outline anchored at its bottom-left corner; `Circle` is an outline centered on `{x, y}`. Bounds must be `{min, max}` with `min <= max`; `width`, `height`, and `radius` must be non-negative. `:braille` gives the finest resolution; pick `:dot` or `:block` for terminals without Braille fonts.
+
+### World map and labels
+
+`%CanvasMap{}` paints the world's coastlines (pair with bounds `{-180, 180}` × `{-90, 90}`); `%Label{}` writes annotation text on top of the canvas at canvas-space coordinates.
+
+```elixir
+%Canvas{
+  x_bounds: {-180.0, 180.0},
+  y_bounds: {-90.0, 90.0},
+  marker: :dot,
+  shapes: [
+    %CanvasMap{resolution: :high, color: :green},  # :low | :high
+    %Label{x: -74.0, y: 40.7, text: "NYC", color: :yellow},
+    %Label{x: 139.7, y: 35.7, text: "Tokyo", color: :yellow}
+  ]
+}
+```
+
+`Map.resolution` accepts `:low` (cheap) or `:high` (richer coastlines). `Label.text` must be a binary; the color applies as the text foreground.
 
 ## Tabs
 

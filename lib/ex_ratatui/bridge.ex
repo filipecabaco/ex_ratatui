@@ -36,7 +36,8 @@ defmodule ExRatatui.Bridge do
     WidgetList
   }
 
-  alias ExRatatui.Widgets.Canvas.{Circle, Line, Points, Rectangle}
+  alias ExRatatui.Widgets.Canvas.{Circle, Label, Line, Points, Rectangle}
+  alias ExRatatui.Widgets.Canvas.Map, as: CanvasMap
 
   @doc false
   @spec encode_commands!([{ExRatatui.widget(), Rect.t()}]) :: [{map(), map()}]
@@ -608,9 +609,48 @@ defmodule ExRatatui.Bridge do
     }
   end
 
+  defp encode_canvas_shape(%CanvasMap{color: nil}), do: raise_canvas_required("Map", "color")
+
+  defp encode_canvas_shape(%CanvasMap{resolution: resolution})
+       when resolution not in [:low, :high] do
+    raise ArgumentError,
+          "canvas.shapes Map.resolution expected :low or :high, got: #{inspect(resolution)}"
+  end
+
+  defp encode_canvas_shape(%CanvasMap{} = map) do
+    %{
+      "shape" => "map",
+      "resolution" => Atom.to_string(map.resolution),
+      "color" => encode_color(map.color)
+    }
+  end
+
+  defp encode_canvas_shape(%Label{x: nil}), do: raise_canvas_required("Label", "x")
+  defp encode_canvas_shape(%Label{y: nil}), do: raise_canvas_required("Label", "y")
+  defp encode_canvas_shape(%Label{text: nil}), do: raise_canvas_required("Label", "text")
+  defp encode_canvas_shape(%Label{color: nil}), do: raise_canvas_required("Label", "color")
+
+  defp encode_canvas_shape(%Label{text: text}) when not is_binary(text) do
+    raise ArgumentError,
+          "canvas.shapes Label.text expected a string, got: #{inspect(text)}"
+  end
+
+  defp encode_canvas_shape(%Label{} = label) do
+    validate_canvas_number!("Label", "x", label.x)
+    validate_canvas_number!("Label", "y", label.y)
+
+    %{
+      "shape" => "label",
+      "x" => label.x * 1.0,
+      "y" => label.y * 1.0,
+      "text" => label.text,
+      "color" => encode_color(label.color)
+    }
+  end
+
   defp encode_canvas_shape(other) do
     raise ArgumentError,
-          "canvas.shapes entry must be a Line, Rectangle, Circle, or Points struct, got: #{inspect(other)}"
+          "canvas.shapes entry must be a Line, Rectangle, Circle, Points, Map, or Label struct, got: #{inspect(other)}"
   end
 
   defp encode_canvas_coords(coords) when is_list(coords),

@@ -29,7 +29,8 @@ defmodule ExRatatui.WidgetsTest do
     WidgetList
   }
 
-  alias ExRatatui.Widgets.Canvas.{Circle, Line, Points, Rectangle}
+  alias ExRatatui.Widgets.Canvas.{Circle, Label, Line, Points, Rectangle}
+  alias ExRatatui.Widgets.Canvas.Map, as: CanvasMap
 
   setup do
     terminal = ExRatatui.init_test_terminal(60, 15)
@@ -1081,6 +1082,131 @@ defmodule ExRatatui.WidgetsTest do
       canvas = %Canvas{x_bounds: :nope, y_bounds: {0.0, 10.0}, shapes: []}
 
       assert_raise ArgumentError, ~r/x_bounds expected \{min, max\} tuple of numbers/, fn ->
+        ExRatatui.Bridge.encode_commands!([{canvas, rect}])
+      end
+    end
+
+    test "canvas renders a Map shape with low resolution", %{terminal: terminal} do
+      canvas = %Canvas{
+        x_bounds: {-180.0, 180.0},
+        y_bounds: {-90.0, 90.0},
+        marker: :dot,
+        shapes: [%CanvasMap{resolution: :low, color: :green}]
+      }
+
+      rect = %Rect{x: 0, y: 0, width: 60, height: 14}
+
+      assert :ok = ExRatatui.draw(terminal, [{canvas, rect}])
+    end
+
+    test "canvas renders a Label shape", %{terminal: terminal} do
+      canvas = %Canvas{
+        x_bounds: {0.0, 10.0},
+        y_bounds: {0.0, 10.0},
+        shapes: [%Label{x: 1.0, y: 5.0, text: "origin", color: :white}]
+      }
+
+      rect = %Rect{x: 0, y: 0, width: 30, height: 10}
+
+      assert :ok = ExRatatui.draw(terminal, [{canvas, rect}])
+      content = ExRatatui.get_buffer_content(terminal)
+      assert content =~ "origin"
+    end
+
+    test "canvas rejects Map with missing color" do
+      rect = %Rect{x: 0, y: 0, width: 20, height: 10}
+
+      canvas = %Canvas{
+        x_bounds: {-180.0, 180.0},
+        y_bounds: {-90.0, 90.0},
+        shapes: [%CanvasMap{resolution: :low}]
+      }
+
+      assert_raise ArgumentError, ~r/Map\.color is required/, fn ->
+        ExRatatui.Bridge.encode_commands!([{canvas, rect}])
+      end
+    end
+
+    test "canvas rejects Map with unknown resolution" do
+      rect = %Rect{x: 0, y: 0, width: 20, height: 10}
+
+      canvas = %Canvas{
+        x_bounds: {-180.0, 180.0},
+        y_bounds: {-90.0, 90.0},
+        shapes: [%CanvasMap{resolution: :medium, color: :green}]
+      }
+
+      assert_raise ArgumentError, ~r/Map\.resolution expected :low or :high/, fn ->
+        ExRatatui.Bridge.encode_commands!([{canvas, rect}])
+      end
+    end
+
+    test "canvas rejects Label with missing text" do
+      rect = %Rect{x: 0, y: 0, width: 20, height: 10}
+
+      canvas = %Canvas{
+        x_bounds: {0.0, 10.0},
+        y_bounds: {0.0, 10.0},
+        shapes: [%Label{x: 1.0, y: 1.0, color: :white}]
+      }
+
+      assert_raise ArgumentError, ~r/Label\.text is required/, fn ->
+        ExRatatui.Bridge.encode_commands!([{canvas, rect}])
+      end
+    end
+
+    test "canvas rejects Label with non-string text" do
+      rect = %Rect{x: 0, y: 0, width: 20, height: 10}
+
+      canvas = %Canvas{
+        x_bounds: {0.0, 10.0},
+        y_bounds: {0.0, 10.0},
+        shapes: [%Label{x: 1.0, y: 1.0, text: 42, color: :white}]
+      }
+
+      assert_raise ArgumentError, ~r/Label\.text expected a string/, fn ->
+        ExRatatui.Bridge.encode_commands!([{canvas, rect}])
+      end
+    end
+
+    test "canvas rejects Label with missing x" do
+      rect = %Rect{x: 0, y: 0, width: 20, height: 10}
+
+      canvas = %Canvas{
+        x_bounds: {0.0, 10.0},
+        y_bounds: {0.0, 10.0},
+        shapes: [%Label{y: 1.0, text: "x", color: :white}]
+      }
+
+      assert_raise ArgumentError, ~r/Label\.x is required/, fn ->
+        ExRatatui.Bridge.encode_commands!([{canvas, rect}])
+      end
+    end
+
+    test "canvas rejects Label with missing y" do
+      rect = %Rect{x: 0, y: 0, width: 20, height: 10}
+
+      canvas = %Canvas{
+        x_bounds: {0.0, 10.0},
+        y_bounds: {0.0, 10.0},
+        shapes: [%Label{x: 1.0, text: "x", color: :white}]
+      }
+
+      assert_raise ArgumentError, ~r/Label\.y is required/, fn ->
+        ExRatatui.Bridge.encode_commands!([{canvas, rect}])
+      end
+    end
+
+    test "canvas rejects Label with missing color" do
+      rect = %Rect{x: 0, y: 0, width: 20, height: 10}
+
+      canvas = %Canvas{
+        x_bounds: {0.0, 10.0},
+        y_bounds: {0.0, 10.0},
+        shapes: [%Label{x: 1.0, y: 1.0, text: "x"}]
+      }
+
+      assert_raise ArgumentError, ~r/Label\.color is required/, fn ->
         ExRatatui.Bridge.encode_commands!([{canvas, rect}])
       end
     end

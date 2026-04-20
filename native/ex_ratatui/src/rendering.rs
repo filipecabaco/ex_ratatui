@@ -720,6 +720,18 @@ fn decode_canvas_shape(term: Term<'_>) -> Result<CanvasShape, Error> {
     )?;
 
     match tag.as_str() {
+        "map" => {
+            let resolution_str: String = decode_optional(&map, "resolution", "canvas.shapes Map")?
+                .unwrap_or_else(|| "low".to_string());
+            let resolution = canvas::parse_map_resolution(&resolution_str)?;
+            Ok(CanvasShape::Map { resolution, color })
+        }
+        "label" => Ok(CanvasShape::Label {
+            x: decode_required(&map, "x", "canvas.shapes Label")?,
+            y: decode_required(&map, "y", "canvas.shapes Label")?,
+            text: decode_required(&map, "text", "canvas.shapes Label")?,
+            color,
+        }),
         "line" => Ok(CanvasShape::Line {
             x1: decode_required(&map, "x1", "canvas.shapes Line")?,
             y1: decode_required(&map, "y1", "canvas.shapes Line")?,

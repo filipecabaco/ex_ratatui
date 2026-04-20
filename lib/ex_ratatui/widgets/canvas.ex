@@ -14,6 +14,8 @@ defmodule ExRatatui.Widgets.Canvas do
     * `Rectangle` - `%Rectangle{x, y, width, height, color}` (bottom-left anchored, outline only)
     * `Circle`    - `%Circle{x, y, radius, color}` (center anchored, outline only)
     * `Points`    - `%Points{coords: [{x, y}], color}`
+    * `Map`       - `%Map{resolution, color}` (world map; pair with `{-180, 180}` × `{-90, 90}` bounds)
+    * `Label`     - `%Label{x, y, text, color}` (text annotation drawn on top of the canvas)
 
   ## Markers
 
@@ -57,11 +59,13 @@ defmodule ExRatatui.Widgets.Canvas do
       }
   """
 
-  alias ExRatatui.Widgets.Canvas.{Circle, Line, Points, Rectangle}
+  alias ExRatatui.Widgets.Canvas.{Circle, Label, Line, Points, Rectangle}
+  alias ExRatatui.Widgets.Canvas.Map, as: CanvasMap
 
   @type marker :: :braille | :dot | :block | :bar | :half_block
 
-  @type shape :: Line.t() | Rectangle.t() | Circle.t() | Points.t()
+  @type shape ::
+          Line.t() | Rectangle.t() | Circle.t() | Points.t() | CanvasMap.t() | Label.t()
 
   @type t :: %__MODULE__{
           x_bounds: {number(), number()},
