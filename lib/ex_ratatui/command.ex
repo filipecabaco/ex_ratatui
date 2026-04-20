@@ -33,12 +33,22 @@ defmodule ExRatatui.Command do
   Returns an empty command list.
 
   Useful when reducer helpers want to return an explicit "no commands" value.
+
+  ## Examples
+
+      iex> ExRatatui.Command.none()
+      []
   """
   @spec none() :: []
   def none, do: []
 
   @doc """
   Schedules an immediate self-message for the app process.
+
+  ## Examples
+
+      iex> ExRatatui.Command.message(:tick)
+      %ExRatatui.Command{kind: :message, message: :tick}
   """
   @spec message(term()) :: t()
   def message(message), do: %__MODULE__{kind: :message, message: message}
@@ -47,6 +57,11 @@ defmodule ExRatatui.Command do
   Schedules a delayed self-message for the app process.
 
   `delay_ms` may be `0` to enqueue the message on the next turn without waiting.
+
+  ## Examples
+
+      iex> ExRatatui.Command.send_after(250, :refresh)
+      %ExRatatui.Command{kind: :after, delay_ms: 250, message: :refresh}
   """
   @spec send_after(non_neg_integer(), term()) :: t()
   def send_after(delay_ms, message) when is_integer(delay_ms) and delay_ms >= 0 do
@@ -68,6 +83,19 @@ defmodule ExRatatui.Command do
   Groups multiple commands into a single return value.
 
   Nested batches are flattened by the runtime before execution.
+
+  ## Examples
+
+      iex> a = ExRatatui.Command.message(:a)
+      iex> b = ExRatatui.Command.send_after(10, :b)
+      iex> ExRatatui.Command.batch([a, b])
+      %ExRatatui.Command{
+        kind: :batch,
+        commands: [
+          %ExRatatui.Command{kind: :message, message: :a},
+          %ExRatatui.Command{kind: :after, delay_ms: 10, message: :b}
+        ]
+      }
   """
   @spec batch([t()]) :: t()
   def batch(commands) when is_list(commands), do: %__MODULE__{kind: :batch, commands: commands}

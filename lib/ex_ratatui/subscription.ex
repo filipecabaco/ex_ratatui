@@ -31,6 +31,11 @@ defmodule ExRatatui.Subscription do
 
   Useful when `subscriptions/1` or helper functions want to return an explicit
   "no subscriptions" value.
+
+  ## Examples
+
+      iex> ExRatatui.Subscription.none()
+      []
   """
   @spec none() :: []
   def none, do: []
@@ -40,6 +45,11 @@ defmodule ExRatatui.Subscription do
 
   `id` should be stable across renders for the same logical subscription so the
   runtime can keep it armed instead of cancelling and recreating it.
+
+  ## Examples
+
+      iex> ExRatatui.Subscription.interval(:tick, 1000, :refresh)
+      %ExRatatui.Subscription{id: :tick, kind: :interval, interval_ms: 1000, message: :refresh}
   """
   @spec interval(term(), pos_integer(), term()) :: t()
   def interval(id, interval_ms, message)
@@ -52,6 +62,11 @@ defmodule ExRatatui.Subscription do
 
   Like `interval/3`, `id` is used for reconciliation. Once the message fires,
   the subscription stays inactive until your app returns it again.
+
+  ## Examples
+
+      iex> ExRatatui.Subscription.once(:boot, 50, :ready)
+      %ExRatatui.Subscription{id: :boot, kind: :once, interval_ms: 50, message: :ready}
   """
   @spec once(term(), pos_integer(), term()) :: t()
   def once(id, interval_ms, message)
