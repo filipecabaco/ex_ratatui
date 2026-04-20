@@ -175,9 +175,9 @@ defmodule ExRatatui.ExamplesTest do
   describe "raw-run example smoke tests" do
     alias ExRatatui.Layout.Rect
     alias ExRatatui.Native
+    alias ExRatatui.Widgets.{Block, Markdown, Paragraph, Textarea, WidgetList}
     alias ExRatatui.Widgets.SlashCommands
     alias ExRatatui.Widgets.SlashCommands.Command
-    alias ExRatatui.Widgets.{Block, Markdown, Paragraph, Textarea, WidgetList}
 
     test "chat_interface compiles and its widget stack draws to a test terminal" do
       compile_example_modules("chat_interface.exs")

@@ -1,4 +1,4 @@
-defmodule ExRatatui.CrossTransportTest do
+defmodule ExRatatui.Integration.CrossTransportTest do
   @moduledoc """
   Cross-transport parity: the same App module must produce the same
   widget tree whether it's mounted locally, over SSH, or over Erlang

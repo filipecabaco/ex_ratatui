@@ -1,4 +1,4 @@
-defmodule ExRatatui.FocusIntegrationTest do
+defmodule ExRatatui.Integration.FocusTest do
   use ExUnit.Case, async: true
 
   alias ExRatatui.Event

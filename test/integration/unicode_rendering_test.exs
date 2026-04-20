@@ -1,4 +1,4 @@
-defmodule ExRatatui.UnicodeRenderingTest do
+defmodule ExRatatui.Integration.UnicodeRenderingTest do
   @moduledoc """
   Rendering regression tests for non-ASCII input across widgets.
 

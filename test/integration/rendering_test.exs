@@ -1,4 +1,4 @@
-defmodule ExRatatui.RenderingTest do
+defmodule ExRatatui.Integration.RenderingTest do
   use ExUnit.Case, async: true
 
   alias ExRatatui.Layout.Rect

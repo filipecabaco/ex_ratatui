@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **TextInput cursor invisible at end of double-width input** ([#45](https://github.com/mcass19/ex_ratatui/issues/45)) — when a `TextInput` contained CJK or other double-width characters that overflowed the widget's display width, moving the cursor to the end made it disappear. Viewport scrolling and span construction tracked positions in char counts but the widget's display width is measured in terminal cells, so wide chars consumed twice their accounted-for space and the trailing cursor span was truncated. Both the viewport adjustment and the rendered spans are now cell-aware via the `unicode-width` crate
 
+### Changed
+
+- **Test suite expanded.** New coverage: property-based invariants for `Layout.split/3`, style encoding, text coercion, and `Focus` ring semantics via `stream_data`; unicode and emoji rendering across CJK, combining marks, ZWJ sequences, and BMP/SMP emoji on every text-bearing widget; stress tests for 2 000-widget scenes, 1 000 redraws, and 1×1 / 500×500 terminals; cross-transport parity tests proving the same `App` module produces identical widget trees under local, SSH, and Erlang distribution; raw-example smoke tests for `system_monitor` (App-based) and `chat_interface` (raw `ExRatatui.run/1` loop). Distributed integration now also exercises Chart, grouped BarChart, and Canvas with a `Map` shape to catch any future NIF-field regression across node boundaries. Coverage remains at 100% across all 55 modules
+- **Test layout mirrors `lib/`.** `test/ex_ratatui/widgets_test.exs` was split into per-widget files under `test/ex_ratatui/widgets/`, one-for-one with `lib/ex_ratatui/widgets/`. Cross-cutting integration tests (cross-transport parity, unicode rendering, stress, focus integration, full-stack rendering) now live under `test/integration/`. `server_runtime_test.exs` was renamed to `runtime_test.exs` and `test_backend_test.exs` folded into `terminal_test.exs` to match the modules they cover
+
 ## [0.7.1] - 2026-04-13
 
 ### Fixed

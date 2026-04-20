@@ -1,4 +1,4 @@
-defmodule ExRatatui.StressTest do
+defmodule ExRatatui.Integration.StressTest do
   @moduledoc """
   Stress tests — large scenes, rapid redraws, extreme dimensions.
 

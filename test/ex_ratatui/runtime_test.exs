@@ -1,4 +1,4 @@
-defmodule ExRatatui.ServerRuntimeTest do
+defmodule ExRatatui.RuntimeTest do
   use ExUnit.Case, async: true
 
   alias ExRatatui.{Command, Frame, Runtime, Server, Subscription}
