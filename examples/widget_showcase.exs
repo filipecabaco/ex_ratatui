@@ -317,8 +317,11 @@ defmodule WidgetShowcase do
     [charts_area, sparkline_area] =
       Layout.split(area, :vertical, [{:min, 0}, {:length, 5}])
 
-    [vertical_area, horizontal_area] =
+    [vertical_area, lower_area] =
       Layout.split(charts_area, :vertical, [{:percentage, 60}, {:percentage, 40}])
+
+    [horizontal_area, grouped_area] =
+      Layout.split(lower_area, :horizontal, [{:percentage, 55}, {:percentage, 45}])
 
     days = ~w(Mon Tue Wed Thu Fri Sat Sun)
 
@@ -388,6 +391,45 @@ defmodule WidgetShowcase do
       }
     }
 
+    grouped_chart = %BarChart{
+      groups: [
+        %BarGroup{
+          label: "Q1",
+          bars: [
+            %Bar{label: "EU", value: 42, style: %Style{fg: :cyan}},
+            %Bar{label: "US", value: 58, style: %Style{fg: :magenta}}
+          ]
+        },
+        %BarGroup{
+          label: "Q2",
+          bars: [
+            %Bar{label: "EU", value: 51, style: %Style{fg: :cyan}},
+            %Bar{label: "US", value: 64, style: %Style{fg: :magenta}}
+          ]
+        },
+        %BarGroup{
+          label: "Q3",
+          bars: [
+            %Bar{label: "EU", value: 47, style: %Style{fg: :cyan}},
+            %Bar{label: "US", value: 72, style: %Style{fg: :magenta}}
+          ]
+        }
+      ],
+      bar_width: 2,
+      bar_gap: 0,
+      group_gap: 2,
+      value_style: %Style{fg: :white, modifiers: [:bold]},
+      label_style: %Style{fg: :dark_gray},
+      max: 100,
+      direction: :vertical,
+      block: %Block{
+        title: " Revenue by Region (grouped) ",
+        borders: [:all],
+        border_type: :rounded,
+        border_style: %Style{fg: :dark_gray}
+      }
+    }
+
     sparkline = %Sparkline{
       data: state.cpu_history,
       max: 25,
@@ -407,6 +449,7 @@ defmodule WidgetShowcase do
     [
       {vertical_chart, vertical_area},
       {horizontal_chart, horizontal_area},
+      {grouped_chart, grouped_area},
       {sparkline, sparkline_area}
     ]
   end
@@ -461,8 +504,11 @@ defmodule WidgetShowcase do
   end
 
   defp render_tab(%{tab: 5} = state, area) do
-    [canvas_area, legend_area] =
+    [canvas_column, legend_area] =
       Layout.split(area, :horizontal, [{:min, 0}, {:length, 28}])
+
+    [canvas_area, map_area] =
+      Layout.split(canvas_column, :vertical, [{:percentage, 60}, {:percentage, 40}])
 
     cursor_point = %Points{
       coords: [state.canvas_cursor],
@@ -479,6 +525,25 @@ defmodule WidgetShowcase do
         borders: [:all],
         border_type: :rounded,
         border_style: %Style{fg: :cyan}
+      }
+    }
+
+    world_map = %Canvas{
+      x_bounds: {-180.0, 180.0},
+      y_bounds: {-90.0, 90.0},
+      marker: :dot,
+      shapes: [
+        %CanvasMap{resolution: :high, color: :green},
+        %Label{x: -74.0, y: 40.7, text: "NYC", color: :yellow},
+        %Label{x: -0.1, y: 51.5, text: "London", color: :yellow},
+        %Label{x: 139.7, y: 35.7, text: "Tokyo", color: :yellow},
+        %Label{x: -46.6, y: -23.5, text: "São Paulo", color: :yellow}
+      ],
+      block: %Block{
+        title: " World Map (CanvasMap + Label) ",
+        borders: [:all],
+        border_type: :rounded,
+        border_style: %Style{fg: :green}
       }
     }
 
@@ -512,7 +577,7 @@ defmodule WidgetShowcase do
       }
     }
 
-    [{canvas, canvas_area}, {legend, legend_area}]
+    [{canvas, canvas_area}, {world_map, map_area}, {legend, legend_area}]
   end
 
   defp render_tab(%{tab: 6} = state, area) do
