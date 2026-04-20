@@ -28,6 +28,7 @@ defmodule ExRatatui.Integration.CrossTransportTest do
   alias ExRatatui.Layout.Rect
   alias ExRatatui.SSH.Daemon
   alias ExRatatui.Test.CrossTransportApp
+  alias ExRatatui.Test.SshHelper
 
   @app CrossTransportApp
   @width 80
@@ -54,7 +55,7 @@ defmodule ExRatatui.Integration.CrossTransportTest do
     # -- tmp host key for the SSH branch -----------------------------------
     system_dir = Path.join(tmp_dir, "system")
     File.mkdir_p!(system_dir)
-    generate_host_key!(system_dir)
+    SshHelper.generate_host_key!(system_dir)
 
     {:ok, peer_node: peer_node, system_dir: String.to_charlist(system_dir)}
   end
@@ -135,7 +136,7 @@ defmodule ExRatatui.Integration.CrossTransportTest do
         app_opts: [test_pid: test_pid]
       )
 
-    port = resolve_ssh_port(daemon)
+    port = SshHelper.resolve_port(daemon)
 
     {:ok, conn} =
       :ssh.connect(~c"127.0.0.1", port,
@@ -183,7 +184,7 @@ defmodule ExRatatui.Integration.CrossTransportTest do
         app_opts: [test_pid: test_pid]
       )
 
-    port = resolve_ssh_port(daemon)
+    port = SshHelper.resolve_port(daemon)
 
     {:ok, conn} =
       :ssh.connect(~c"127.0.0.1", port,
@@ -279,18 +280,5 @@ defmodule ExRatatui.Integration.CrossTransportTest do
     after
       0 -> :ok
     end
-  end
-
-  defp resolve_ssh_port(daemon_pid) do
-    {:ok, daemon_ref} = Daemon.daemon_ref(daemon_pid)
-    {:ok, info} = :ssh.daemon_info(daemon_ref)
-    Keyword.fetch!(info, :port)
-  end
-
-  defp generate_host_key!(system_dir) do
-    key = :public_key.generate_key({:rsa, 2048, 65_537})
-    pem_entry = :public_key.pem_entry_encode(:RSAPrivateKey, key)
-    pem = :public_key.pem_encode([pem_entry])
-    File.write!(Path.join(system_dir, "ssh_host_rsa_key"), pem)
   end
 end

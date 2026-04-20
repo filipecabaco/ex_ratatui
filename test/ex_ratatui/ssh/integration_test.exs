@@ -23,6 +23,7 @@ defmodule ExRatatui.SSH.IntegrationTest do
   @moduletag capture_log: true
 
   alias ExRatatui.SSH.Daemon
+  alias ExRatatui.Test.SshHelper
 
   defmodule DemoApp do
     @moduledoc false
@@ -60,7 +61,7 @@ defmodule ExRatatui.SSH.IntegrationTest do
     user_dir = Path.join(tmp_dir, "user")
     File.mkdir_p!(system_dir)
     File.mkdir_p!(user_dir)
-    generate_host_key!(system_dir)
+    SshHelper.generate_host_key!(system_dir)
 
     {:ok, system_dir: String.to_charlist(system_dir), user_dir: String.to_charlist(user_dir)}
   end
@@ -78,7 +79,7 @@ defmodule ExRatatui.SSH.IntegrationTest do
         app_opts: [test_pid: self()]
       )
 
-    port = resolve_port(daemon_pid)
+    port = SshHelper.resolve_port(daemon_pid)
     assert is_integer(port) and port > 0
 
     {:ok, conn} =
@@ -122,22 +123,5 @@ defmodule ExRatatui.SSH.IntegrationTest do
 
     :ok = :ssh.close(conn)
     GenServer.stop(daemon_pid)
-  end
-
-  ## Helpers
-
-  defp resolve_port(daemon_pid) do
-    {:ok, daemon_ref} = Daemon.daemon_ref(daemon_pid)
-    {:ok, info} = :ssh.daemon_info(daemon_ref)
-    Keyword.fetch!(info, :port)
-  end
-
-  defp generate_host_key!(system_dir) do
-    # Generate a throwaway RSA host key in the PEM shape `:ssh` expects
-    # when it scans `system_dir` for `ssh_host_rsa_key`.
-    key = :public_key.generate_key({:rsa, 2048, 65_537})
-    pem_entry = :public_key.pem_entry_encode(:RSAPrivateKey, key)
-    pem = :public_key.pem_encode([pem_entry])
-    File.write!(Path.join(system_dir, "ssh_host_rsa_key"), pem)
   end
 end
