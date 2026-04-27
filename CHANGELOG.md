@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-04-27
+
 ### Added
 
 - **Telemetry instrumentation** ([#56](https://github.com/mcass19/ex_ratatui/issues/56)) — new `ExRatatui.Telemetry` module emits `:telemetry` events across the runtime so apps can plug in logging, metrics, or OpenTelemetry tracing without forking the server. Five span events (`:start` / `:stop` / `:exception`) wrap the costly stages: `[:ex_ratatui, :runtime, :init]` around `mount/1`, `[:ex_ratatui, :runtime, :event]` around terminal-input `handle_event/2`, `[:ex_ratatui, :runtime, :update]` around info-message `handle_info/2` (subscriptions, async results, user messages), `[:ex_ratatui, :render, :frame]` around the build+draw cycle (adds `:widget_count` to stop metadata), and `[:ex_ratatui, :transport, :connect]` around local/SSH/distributed handshakes. Four single events fire for point-in-time facts: `[:ex_ratatui, :session, :lifecycle, :open]` when a session-backed runtime adopts a session (carries `:width` / `:height`), `[:ex_ratatui, :session, :lifecycle, :close]` when it releases the session (carries `:reason`; fires exactly once per session even when the transport's own teardown defensively closes the same ref afterwards), `[:ex_ratatui, :render, :dropped]` on draw errors (with a TODO placeholder for future frame-skip backpressure), and `[:ex_ratatui, :transport, :disconnect]` on server teardown. Every event carries `:mod` and `:transport` in its metadata. `ExRatatui.Telemetry.span/3` is a thin helper that prefixes events with `:ex_ratatui` and forwards start metadata to stop; `execute/3` does the same for single events and auto-adds `:system_time`. `attach_default_logger/1` / `detach_default_logger/0` ship a handler that logs every event at a configurable level. New [Telemetry guide](guides/telemetry.md) walks through the full event catalogue, a `Telemetry.Metrics` example, and an `opentelemetry_telemetry` wiring snippet. Added `{:telemetry, "~> 1.0"}` as an explicit dependency and to `extra_applications` so the handler registry is available on every node (including peers in distributed tests)
@@ -322,7 +324,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Precompiled NIFs:** Via `rustler_precompiled` for Linux, macOS, and Windows (x86_64 and aarch64) — no Rust toolchain required
 - **Examples:** `hello_world.exs` (minimal display), `counter.exs` (interactive key events), `counter_app.exs` (App-based counter), `task_manager.exs` (full app with all widgets), and `examples/task_manager/` (supervised Ecto + SQLite CRUD app)
 
-[Unreleased]: https://github.com/mcass19/ex_ratatui/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/mcass19/ex_ratatui/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/mcass19/ex_ratatui/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/mcass19/ex_ratatui/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/mcass19/ex_ratatui/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/mcass19/ex_ratatui/compare/v0.6.2...v0.7.0
