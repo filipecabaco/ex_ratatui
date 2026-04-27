@@ -23,7 +23,9 @@ A byte-stream transport (SSH, a TCP bridge, a Kino widget) does three things. It
 
 ## A minimal TCP transport
 
-Listen on a TCP port, on every connection spawn a `Session`, start a `Server` pointed at it, and pump bytes in both directions:
+Two responsibilities, one module: a long-lived **acceptor** that loops on `:gen_tcp.accept` and re-arms after every client, and a short-lived **connection** task per client that owns the `Session`, the runtime server, and the byte pump. Splitting them is what makes the listener survive across disconnects — fold the acceptor and connection into one GenServer and the whole thing dies the moment the first client leaves.
+
+Beyond that, three things to get right: emit the alt-screen enter/leave sequences (the in-memory `Session` deliberately doesn't — it's the transport's job, mirroring `ExRatatui.SSH`), monitor the runtime server so the connection tears down when the app quits, and flush the leave-screen bytes *before* you close the socket so the client's terminal is restored.
 
 ```elixir
 defmodule MyApp.TcpTransport do
@@ -35,49 +37,126 @@ defmodule MyApp.TcpTransport do
   alias ExRatatui.Session
   alias ExRatatui.Transport.ByteStream
 
+  # Same canonical pair `ExRatatui.SSH` emits. Without these the TUI
+  # would paint into the client's main scrollback (no alt buffer) and
+  # leave the client stuck in the alt buffer with the cursor hidden
+  # after disconnect.
+  @enter_screen "\e[?1049h\e[?25l"
+  @leave_screen "\e[?1049l\e[?25h\e[0m"
+
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts)
 
   @impl true
   def init(opts) do
     mod  = Keyword.fetch!(opts, :mod)
     port = Keyword.get(opts, :port, 4040)
-    {:ok, listener} = :gen_tcp.listen(port, [:binary, active: true])
+
+    # `reuseaddr: true` lets us re-bind the port instantly after a
+    # restart instead of waiting through the OS' lingering close.
+    {:ok, listener} =
+      :gen_tcp.listen(port, [:binary, active: false, reuseaddr: true])
+
     {:ok, %{mod: mod, listener: listener}, {:continue, :accept}}
   end
 
+  # Accept one connection, hand it off to a per-client task, and
+  # immediately re-arm the next accept. Each connection runs in its own
+  # *unlinked* Task so a single client crashing or disconnecting can't
+  # take the acceptor with it. For production you'd start each client
+  # under a `DynamicSupervisor` so they're observable; for a minimal
+  # example this is enough.
   @impl true
   def handle_continue(:accept, state) do
     {:ok, socket} = :gen_tcp.accept(state.listener)
+    {:ok, conn}   = Task.start(fn -> run_connection(state.mod, socket) end)
+    :ok = :gen_tcp.controlling_process(socket, conn)
+    send(conn, :go)
+    {:noreply, state, {:continue, :accept}}
+  end
+
+  ## Per-connection worker
+
+  defp run_connection(mod, socket) do
+    # Wait until the acceptor has finished the controlling-process
+    # handover before we switch the socket to active mode.
+    receive do
+      :go -> :ok
+    end
+
+    :ok = :inet.setopts(socket, active: true)
+    :ok = :gen_tcp.send(socket, @enter_screen)
+
     session = Session.new(80, 24)
     writer  = fn bytes -> :gen_tcp.send(socket, bytes) end
 
     {:ok, server} =
       ExRatatui.Transport.start_server(
-        mod: state.mod,
+        mod: mod,
         name: nil,
         transport: {:session, session, writer}
       )
 
-    {:noreply, Map.merge(state, %{socket: socket, session: session, server: server})}
+    server_ref = Process.monitor(server)
+    connection_loop(socket, session, server, server_ref)
   end
 
-  @impl true
-  def handle_info({:tcp, socket, bytes}, %{socket: socket} = state) do
-    _events = ByteStream.forward_input(state.session, state.server, bytes)
-    {:noreply, state}
-  end
+  defp connection_loop(socket, session, server, server_ref) do
+    receive do
+      {:tcp, ^socket, bytes} ->
+        _ = ByteStream.forward_input(session, server, bytes)
+        connection_loop(socket, session, server, server_ref)
 
-  def handle_info({:tcp_closed, socket}, %{socket: socket} = state) do
-    {:stop, :normal, state}
+      {:tcp_closed, ^socket} ->
+        # Client disconnected. Stop the server explicitly — it owns
+        # the Session and won't notice on its own until its next
+        # writer_fn call fails.
+        if Process.alive?(server), do: GenServer.stop(server)
+
+      {:DOWN, ^server_ref, :process, ^server, _reason} ->
+        # App quit (q pressed, terminate returned :stop, mount failed,
+        # …). Flush the leave-screen bytes *now*, while the socket is
+        # still writable, then close the socket so the client's
+        # terminal is restored.
+        _ = :gen_tcp.send(socket, @leave_screen)
+        _ = :gen_tcp.close(socket)
+    end
   end
 end
 ```
 
-Drop `{MyApp.TcpTransport, mod: MyApp.Counter, port: 4040}` into your supervision tree and any `ExRatatui.App` module now runs over TCP. Connect with `nc localhost 4040` (or a real speaking client) and you'll see the TUI. Keys you type are parsed by the Session's VTE frontend and delivered to `handle_event/2` as `%Event.Key{}` values.
+Drop `{MyApp.TcpTransport, mod: MyApp.Counter, port: 4040}` into your supervision tree and any `ExRatatui.App` module now runs over TCP — concurrent clients welcome, and the listener stays up across disconnects.
+
+### Client requirements
+
+Plain TCP has no equivalent of SSH's PTY negotiation, so the *client* has to put its terminal in raw mode for per-keystroke delivery. The most robust option is `socat`, which handles the terminal mode itself:
+
+```bash
+socat -,raw,echo=0,escape=0x03 TCP:localhost:4040
+```
+
+`raw,echo=0` on `-` (stdin) puts your terminal in raw mode without local echo for the duration of the connection and restores it on exit. `escape=0x03` lets you Ctrl-C out if the server hangs.
+
+`nc` works too with an `stty` wrapper, with one caveat:
+
+```bash
+stty raw -echo; nc localhost 4040; stty sane
+```
+
+Without `stty raw -echo`, your local terminal stays in cooked mode: keystrokes are buffered locally until you press Enter, your local terminal echoes characters before they're sent, and the TUI never sees individual key events. The trailing `stty sane` restores your shell once `nc` exits.
+
+`nc` has a teardown quirk worth knowing about: it doesn't exit purely on remote socket close — it also waits for EOF on its stdin. So when the app quits, the TUI restores correctly but you'll need to press one extra key for `nc` to notice (the keypress fails to write to the dead socket, which is what makes `nc` finally exit) before `stty sane` runs and your shell returns. If that bothers you, use `socat`.
+
+### Limitation: no resize support
+
+The TCP example above hardcodes `Session.new(80, 24)` and never updates it. That's not a bug in the example — it's a structural limit of raw TCP. SSH has a dedicated channel for terminal dimensions (`pty_req` at connect for the initial size, `window_change` packets while running for SIGWINCH), and `ExRatatui.SSH` translates both into `{:ex_ratatui_resize, w, h}` messages to the runtime. Raw TCP has no equivalent — every byte on the socket is application data, and dumb clients like `nc` and `socat` ignore SIGWINCH on your local terminal because they have no protocol slot to forward it through.
+
+If you need *initial* size discovery without changing the client, the SSH transport's CPR trick works over TCP too: send `\e[s\e[9999;9999H\e[6n\e[u` after the alt-screen enter, the client's terminal answers with `\e[<row>;<col>R`, the `Session`'s input parser decodes that into a `%Event.Resize{}`, and `ByteStream.forward_input/3` absorbs it into a runtime resize automatically. See `lib/ex_ratatui/ssh.ex:151` for the exact wiring SSH uses in subsystem mode.
+
+For *ongoing* resize you need a smarter client — one that watches SIGWINCH and sends the new dimensions back over the socket as a framed message your transport decodes. That's a real custom-client effort (think `mosh`-style); if you're at that point, SSH is almost always the better answer.
 
 ## Checklist for a new byte-stream transport
 
-A few non-obvious things to get right. Declare `@behaviour ExRatatui.Transport` on the module that owns the connection (the GenServer, channel handler, whatever your framework gives you). Size the `Session` to the remote terminal at connect time — if you can't know the size up front, pick a default (80×24) and send a resize as soon as you learn the real dimensions. The `writer_fn` you hand to the runtime server must be fast and non-blocking; it's called from the server process on every render, and a blocking write back-pressures the entire runtime. Route inbound bytes through `ByteStream.forward_input/3` rather than calling `Session.feed_input/2` yourself — you'll miss the Resize-absorption logic. Route inbound resize signals through `ByteStream.forward_resize/4`. On disconnect, stop the server (so it tears down cleanly) and close the Session.
+A few non-obvious things to get right. Declare `@behaviour ExRatatui.Transport` on the module that owns the connection (the GenServer, channel handler, whatever your framework gives you). Separate the **acceptor** from the **per-connection worker** — a single process trying to do both can only serve one client at a time, and it dies as soon as that client leaves, taking the listener with it. Size the `Session` to the remote terminal at connect time — if you can't know the size up front, pick a default (80×24) and send a resize as soon as you learn the real dimensions. The `writer_fn` you hand to the runtime server must be fast and non-blocking; it's called from the server process on every render, and a blocking write back-pressures the entire runtime. Emit the alt-screen enter sequence (`\e[?1049h\e[?25l`) before the first frame and the leave sequence (`\e[?1049l\e[?25h\e[0m`) on teardown — the `Session` deliberately doesn't (see the comment in `lib/ex_ratatui/ssh.ex`); without them the TUI paints over the client's shell scrollback and the client is left stuck in the alt buffer after disconnect. Route inbound bytes through `ByteStream.forward_input/3` rather than calling `Session.feed_input/2` yourself — you'll miss the Resize-absorption logic. Route inbound resize signals through `ByteStream.forward_resize/4`. Monitor the runtime server pid (or trap exits) so you notice when the app quits — that's your cue to flush the leave-screen sequence *while the connection is still writable* and then close the underlying socket/channel.
 
 ## When NOT to use a byte-stream transport
 
