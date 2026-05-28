@@ -220,6 +220,9 @@ defmodule ExRatatui do
   def decode_event({:resize, width, height}),
     do: %Event.Resize{width: width, height: height}
 
+  def decode_event({:paste, content}),
+    do: %Event.Paste{content: content}
+
   def decode_event({:error, _} = err), do: err
 
   @doc """
