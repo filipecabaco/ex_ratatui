@@ -1,7 +1,8 @@
-use std::io::Stdout;
+use std::io::{Stdout, Write};
 use std::sync::Mutex;
 
-use crossterm::terminal::{self, EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::event::{DisableBracketedPaste, DisableFocusChange, EnableBracketedPaste, EnableFocusChange};
+use crossterm::terminal::{self, BeginSynchronizedUpdate, EndSynchronizedUpdate, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::ExecutableCommand;
 use ratatui::backend::{CrosstermBackend, TestBackend};
 use ratatui::Terminal;
@@ -48,6 +49,8 @@ impl Drop for TerminalResource {
 
         if self.is_crossterm {
             if let Some(AnyTerminal::Crossterm(_)) = guard.take() {
+                let _ = std::io::stdout().execute(DisableFocusChange);
+                let _ = std::io::stdout().execute(DisableBracketedPaste);
                 let _ = terminal::disable_raw_mode();
                 let _ = std::io::stdout().execute(LeaveAlternateScreen);
             }
@@ -69,7 +72,12 @@ where
         .ok_or_else(|| Error::Term(Box::new("terminal not initialized")))?;
 
     let draw_result = match terminal {
-        AnyTerminal::Crossterm(t) => t.draw(f),
+        AnyTerminal::Crossterm(t) => {
+            let _ = std::io::stdout().execute(BeginSynchronizedUpdate);
+            let result = t.draw(f);
+            let _ = std::io::stdout().execute(EndSynchronizedUpdate);
+            result
+        }
         AnyTerminal::Test(t) => t.draw(f).map_err(std::io::Error::other),
     };
 
@@ -85,6 +93,15 @@ fn init_terminal() -> Result<ResourceArc<TerminalResource>, Error> {
         let _ = terminal::disable_raw_mode();
         return Err(Error::Term(Box::new(format!("{e}"))));
     }
+
+    if let Err(e) = std::io::stdout().execute(EnableBracketedPaste) {
+        let _ = std::io::stdout().execute(LeaveAlternateScreen);
+        let _ = terminal::disable_raw_mode();
+        return Err(Error::Term(Box::new(format!("{e}"))));
+    }
+
+    // Non-fatal: older terminals silently ignore the sequence.
+    let _ = std::io::stdout().execute(EnableFocusChange);
 
     let backend = CrosstermBackend::new(std::io::stdout());
     let terminal = match Terminal::new(backend) {
@@ -113,6 +130,8 @@ fn restore_terminal(resource: ResourceArc<TerminalResource>) -> Result<Atom, Err
 
     match guard.take() {
         Some(AnyTerminal::Crossterm(_)) => {
+            let _ = std::io::stdout().execute(DisableFocusChange);
+            let _ = std::io::stdout().execute(DisableBracketedPaste);
             terminal::disable_raw_mode().map_err(|e| Error::Term(Box::new(format!("{e}"))))?;
             std::io::stdout()
                 .execute(LeaveAlternateScreen)
@@ -181,6 +200,30 @@ fn terminal_set_local_probe(
         crate::image::ProtocolKind::Auto => None,
         kind => Some((kind, font_size)),
     };
+    Ok(atoms::ok())
+}
+
+/// Writes text to the terminal clipboard via OSC 52.
+///
+/// `encoded` must be the base64-encoded text (use `Base.encode64/1` on the
+/// Elixir side). Works in iTerm2, WezTerm, and kitty. Terminal.app blocks
+/// OSC 52 by default; the sequence is silently ignored on unsupported
+/// terminals.
+#[rustler::nif(schedule = "DirtyIo")]
+fn copy_to_clipboard(encoded: String) -> Result<Atom, Error> {
+    print!("\x1b]52;c;{encoded}\x07");
+    std::io::stdout()
+        .flush()
+        .map_err(|e| Error::Term(Box::new(format!("{e}"))))?;
+    Ok(atoms::ok())
+}
+
+/// Sets the terminal window/tab title via OSC 2.
+#[rustler::nif(schedule = "DirtyIo")]
+fn set_title(title: String) -> Result<Atom, Error> {
+    std::io::stdout()
+        .execute(crossterm::terminal::SetTitle(title))
+        .map_err(|e| Error::Term(Box::new(format!("{e}"))))?;
     Ok(atoms::ok())
 }
 

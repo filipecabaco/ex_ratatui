@@ -223,6 +223,10 @@ defmodule ExRatatui do
   def decode_event({:paste, content}),
     do: %Event.Paste{content: content}
 
+  def decode_event(:focus_gained), do: %Event.FocusGained{}
+
+  def decode_event(:focus_lost), do: %Event.FocusLost{}
+
   def decode_event({:error, _} = err), do: err
 
   @doc """
@@ -238,6 +242,25 @@ defmodule ExRatatui do
   @doc false
   def validate_terminal_size({w, h}) when is_integer(w) and is_integer(h), do: {w, h}
   def validate_terminal_size({:error, _} = err), do: err
+
+  @doc """
+  Writes `text` to the terminal clipboard via OSC 52.
+
+  Works in iTerm2, WezTerm, and kitty. Terminal.app blocks OSC 52 by
+  default; the call is a silent no-op on unsupported terminals.
+  """
+  @spec copy_to_clipboard(String.t()) :: :ok | {:error, term()}
+  def copy_to_clipboard(text) do
+    Native.copy_to_clipboard(Base.encode64(text))
+  end
+
+  @doc """
+  Sets the terminal window/tab title.
+  """
+  @spec set_title(String.t()) :: :ok | {:error, term()}
+  def set_title(title) do
+    Native.set_title(title)
+  end
 
   @doc """
   Sets the image protocol hint on a terminal reference.

@@ -75,9 +75,7 @@ defmodule ExRatatui.MixProject do
     [
       {:rustler_precompiled, "~> 0.8"},
       {:telemetry, "~> 1.0"},
-
-      # Optional
-      {:rustler, ">= 0.0.0", optional: true},
+      {:rustler, ">= 0.0.0"},
 
       # Dev
       {:ex_doc, "~> 0.35", only: :dev, runtime: false},

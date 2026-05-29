@@ -27,6 +27,20 @@ defmodule ExRatatui.Event do
           | ExRatatui.Event.Mouse.t()
           | ExRatatui.Event.Resize.t()
           | ExRatatui.Event.Paste.t()
+          | ExRatatui.Event.FocusGained.t()
+          | ExRatatui.Event.FocusLost.t()
+end
+
+defmodule ExRatatui.Event.FocusGained do
+  @moduledoc "Emitted when the terminal window gains focus."
+  @type t :: %__MODULE__{}
+  defstruct []
+end
+
+defmodule ExRatatui.Event.FocusLost do
+  @moduledoc "Emitted when the terminal window loses focus."
+  @type t :: %__MODULE__{}
+  defstruct []
 end
 
 defmodule ExRatatui.Event.Paste do

@@ -51,7 +51,9 @@ defmodule ExRatatui.Native do
     session_set_image_font_size: 2,
     terminal_set_image_protocol: 2,
     terminal_set_local_probe: 3,
-    highlight_code: 3
+    highlight_code: 3,
+    copy_to_clipboard: 1,
+    set_title: 1
   ]
 
   version = Mix.Project.config()[:version]
@@ -60,7 +62,7 @@ defmodule ExRatatui.Native do
     otp_app: @otp_app,
     crate: "ex_ratatui",
     base_url: "https://github.com/mcass19/ex_ratatui/releases/download/v#{version}",
-    force_build: System.get_env("EX_RATATUI_BUILD") in ["1", "true"],
+    force_build: true,
     version: version,
     targets: ~w(
       aarch64-apple-darwin
