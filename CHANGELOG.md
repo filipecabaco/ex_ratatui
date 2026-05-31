@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-05-31
+
+### Fixed
+
+- Switch `syntect` from the default `onig` backend to `fancy-regex` (pure Rust) to fix a `rustc` SIGTRAP crash when compiling the NIF on `aarch64-unknown-linux-gnu` runners. The `onig_sys` C library triggered a breakpoint trap during linking on that platform; `fancy-regex` requires no native dependencies and produces identical highlighting output for all syntax definitions used.
+
 ## [0.10.0] - 2026-05-19
 
 ### Added
