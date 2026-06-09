@@ -218,6 +218,27 @@ fn copy_to_clipboard(encoded: String) -> Result<Atom, Error> {
     Ok(atoms::ok())
 }
 
+/// Runs an external editor synchronously, inheriting the real terminal (stdin/stdout/stderr)
+/// without creating a new session. This avoids the `/dev/tty: Device not configured` error
+/// that occurs when Erlang ports call setsid(). Blocks until the editor exits.
+#[rustler::nif(schedule = "DirtyIo")]
+fn run_editor(editor_cmd: String, path: String) -> Result<Atom, Error> {
+    let parts: Vec<&str> = editor_cmd.split_whitespace().collect();
+    let Some((cmd, extra_args)) = parts.split_first() else {
+        return Err(Error::Term(Box::new("empty editor command")));
+    };
+
+    std::process::Command::new(cmd)
+        .args(extra_args)
+        .arg(&path)
+        .spawn()
+        .map_err(|e| Error::Term(Box::new(format!("spawn editor: {e}"))))?
+        .wait()
+        .map_err(|e| Error::Term(Box::new(format!("wait editor: {e}"))))?;
+
+    Ok(atoms::ok())
+}
+
 /// Sets the terminal window/tab title via OSC 2.
 #[rustler::nif(schedule = "DirtyIo")]
 fn set_title(title: String) -> Result<Atom, Error> {

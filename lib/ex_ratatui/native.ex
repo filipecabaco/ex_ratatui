@@ -53,7 +53,8 @@ defmodule ExRatatui.Native do
     terminal_set_local_probe: 3,
     highlight_code: 3,
     copy_to_clipboard: 1,
-    set_title: 1
+    set_title: 1,
+    run_editor: 2
   ]
 
   version = Mix.Project.config()[:version]
